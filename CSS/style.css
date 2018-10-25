@@ -1,0 +1,429 @@
+body {
+  /* background-color: #d6d6d6; */
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+
+/**************************************
+MAIN WINDOW STYLES
+**************************************/
+#main-window {
+  background-color: #f2f2f2;
+  position: absolute;
+  border: solid red 5px;
+  width: 1280px;
+  height: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+
+/**************************************
+PRINTER BOX STYLES
+**************************************/
+#printer {
+  background-color: white;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: solid black 3px;
+  width: 300px;
+  height: 500px;
+  overflow: scroll;
+  padding: 15px;
+}
+
+.top-print {
+  text-align: center;
+}
+
+/* table shopping items layout design
+***************************/
+#printer .shopping-items, .standard {
+  /* border: solid 1px black; */
+  border-collapse: collapse;
+  font-size: 10pt;
+  margin: 0;
+  table-layout: fixed;
+  white-space: nowrap;
+  width: 100%;
+}
+
+#printer .standard {
+  /* color: hotpink; */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#printer .standard .row-1 {
+  width: 50%;
+  text-align: left;
+  overflow: hidden;
+  /* word-wrap: break-word; */
+  text-overflow: ellipsis;
+  /* white-space: normal; */
+  /* max-width: 5ch; */
+}
+
+#printer .standard .row-2{
+  text-align: left;
+}
+
+#printer .standard .row-3{
+  text-align: right;
+  padding-right: 10px;
+}
+#printer .standard .row-4{
+  text-align: right;
+  padding-right: 5px;
+}
+
+#printer .quantity .row-1 {
+  width: 50%;
+  text-align: center;
+}
+
+#printer .weight .row-1 {
+  width: 50%;
+  text-align: center;
+}
+
+/**************************************
+DISPLAY BOX STYLES
+**************************************/
+
+#display {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 325px;
+  border: solid black 3px;
+  width: 620px;
+  height: 190px;
+  padding: 25px 0px 25px 0px;
+  background-color: #d3d3d3;
+}
+
+#display table, td {
+  box-sizing: border-box;
+  border-collapse: collapse;
+  /* border: solid 1px hotpink; */
+}
+
+#display table {
+  width: 100%;
+  /* border: solid 1px hotpink; */
+}
+
+#display tr {
+  height: 66px;
+}
+
+#display td {
+  padding: 0;
+}
+
+.table-form {
+  box-sizing: border-box;
+  width: 100%;
+  height: 66px;
+  border: none;
+  /* border: solid black 2px; */
+  background: black;
+  color: green;
+  font-size: 28pt;
+}
+
+#display table {
+  width: 100%;
+  background: black;
+  color: green;
+  padding-left: 10px;
+}
+
+#display tr {
+  height: 66px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#display td {
+  font-size: 28pt;
+
+}
+
+.p-left {
+  padding-left: 15px;
+}
+
+.p-right {
+  padding-right: 15px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.hide {
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+
+/* Login-State, lower right input selector */
+#LS-LR{
+
+}
+
+/**************************************
+SCALE BOX STYLES
+**************************************/
+
+#scale {
+  box-sizing: border-box;
+  background-color: #d3d3d3;
+  position: absolute;
+  top: 525px;
+  left: 0;
+  border: solid black 3px;
+  width: 300px;
+  height: 165px;
+  padding: 15px;
+
+}
+
+#scale .scale {
+  box-sizing: border-box;
+  width: 100%;
+  height: 50px;
+  border: none;
+  background: black;
+  color: green;
+  text-align: center;
+  font-size: 28pt;
+}
+
+#scale h2 {
+  margin-top: 3px;
+  margin-bottom: 15px;
+
+}
+
+/**************************************
+KEYBOARD BOX STYLES
+**************************************/
+
+#keyboard {
+  box-sizing: border-box;
+  background-color: #d3d3d3;
+  position: absolute;
+  top: 215px;
+  left: 325px;
+  border: solid black 3px;
+  width: 620px;
+  height: 475px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  align-content: flex-end;
+  justify-content: center;
+}
+
+.key {
+  font: Arial;
+  box-sizing: border-box;
+  position: absolute;
+  border-radius: 7px;
+  border: solid 2px #d3d3d3;
+  font-size: 9pt;
+  text-align: center;
+  padding-top: 7px;
+}
+
+.active:hover {
+  border: solid red 2px;
+}
+
+.key-small {
+  height: 58px;
+  width: 58px;
+}
+
+.key-blank {
+  height: 58px;
+  width: 58px;
+}
+
+.key-big {
+  height: 116px;
+  width: 116px;
+}
+
+.key-tall {
+  height: 116px;
+  width: 58px;
+}
+
+.key-wide {
+  height: 58px;
+  width: 116px;
+}
+
+.c-gray {
+  background-color: #707070;
+  color: white;
+}
+
+.c-orange {
+  background-color: #EF9A1A;
+  color: black;
+}
+
+.c-blank {
+  background-color: #f2f2f2;
+}
+
+.c-blue {
+  background-color: #003AB7;
+  color: white;
+}
+
+
+/**************************************
+TERMINAL BOX STYLES
+**************************************/
+#terminal {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 970px;
+  border: solid black 3px;
+  width: 300px;
+  height: 225px;
+  padding: 25px;
+
+  background: rgba(147,206,222,1);
+  background: -moz-linear-gradient(top, rgba(147,206,222,1) 0%, rgba(117,189,209,1) 41%, rgba(73,165,191,1) 100%);
+  background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(147,206,222,1)), color-stop(41%, rgba(117,189,209,1)), color-stop(100%, rgba(73,165,191,1)));
+  background: -webkit-linear-gradient(top, rgba(147,206,222,1) 0%, rgba(117,189,209,1) 41%, rgba(73,165,191,1) 100%);
+  background: -o-linear-gradient(top, rgba(147,206,222,1) 0%, rgba(117,189,209,1) 41%, rgba(73,165,191,1) 100%);
+  background: -ms-linear-gradient(top, rgba(147,206,222,1) 0%, rgba(117,189,209,1) 41%, rgba(73,165,191,1) 100%);
+  background: linear-gradient(to bottom, rgba(147,206,222,1) 0%, rgba(117,189,209,1) 41%, rgba(73,165,191,1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#93cede', endColorstr='#49a5bf', GradientType=0 );
+}
+
+#terminal h3 {
+  margin-top: 50px;
+  text-align: center;
+
+}
+
+#terminal p {
+  text-align: center;
+}
+
+/**************************************
+WALLET BOX STYLES
+**************************************/
+#wallet {
+  box-sizing: border-box;
+  background-color: #d3d3d3;
+  position: absolute;
+  top: 250px;
+  left: 970px;
+  border: solid black 3px;
+  width: 300px;
+  height: 440px;
+  padding: 10px;
+  overflow: scroll;
+
+}
+
+#wallet table {
+    border-collapse: collapse;
+    /* border: solid black 1px; */
+    width: 100%;
+    font-size: 10pt;
+    background: white;
+}
+
+#wallet tr {
+  border: solid 1px black;
+  height: 40px;
+}
+
+#wallet td {
+  /* padding: 5px 10px 5px 10px; */
+  padding-left: 10px;
+}
+
+#wallet .use-btn {
+  border: none;
+  color: white;
+  background-color: #0066cc;
+  height: 22px;
+  width: 50px;
+  font-size: 10pt;
+  border-radius: 5px;
+  margin: 1px;
+  /* align-items: flex-end; */
+}
+
+/**************************************
+Test Area - testing and debugging
+**************************************/
+
+#test-area {
+  box-sizing: border-box;
+  position: absolute;
+  top: 750px;
+  left: 100px;
+  min-height: 300px;
+  width: 620px;
+  border: hotpink solid 5px;
+}
+
+#test-area table, td {
+  box-sizing: border-box;
+  border-collapse: collapse;
+  /* border: solid 1px hotpink; */
+}
+
+#test-area table {
+  width: 100%;
+  /* border: solid 1px hotpink; */
+}
+
+#test-area tr {
+  height: 66px;
+}
+
+#test-area td {
+  padding: 0;
+}
+
+.table-form {
+  box-sizing: border-box;
+  width: 100%;
+  height: 66px;
+  border: none;
+  /* border: solid black 2px; */
+  background: black;
+  color: green;
+  font-size: 28pt;
+}
