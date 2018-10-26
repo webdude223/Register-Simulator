@@ -134,7 +134,7 @@
       <section id="scanning-state" class="hide">
         <table>
           <tr>
-            <td><input id="SS-U" class="table-form p-left" type="text" value="Corn on Cobb asdf asdf asdfasdf"></td>
+            <td><input id="SS-U" class="table-form p-left" type="text" value="Corn on Cobb"></td>
           </tr>
         </table>
         <table>

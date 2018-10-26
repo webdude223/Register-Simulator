@@ -1,4 +1,4 @@
-console.log("Page Load Success v.2.4");
+console.log("Page Load Success v.2.7");
 
 //define functions
 function printData(){
@@ -136,57 +136,64 @@ function changeState(state){
       //State 1 - total-state
       document.getElementById("total-state").classList.toggle("hide");
       document.getElementById("TS-LR").focus();
-      previousDisplayState = currentDisplayState; //update Display State history
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }
       currentDisplayState = 1;
       break;
     case 2:
       //State 2 - scanning-state
       document.getElementById("scanning-state").classList.toggle("hide");
       //no focus needed -- output only. A keyin will trigger new state
-      previousDisplayState = currentDisplayState; //update Display State history
-      currentDisplayState = 2;
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }      currentDisplayState = 2;
       break;
     case 3:
       //State 3 - scanning-keyin-state
       document.getElementById("scanning-keyin-state").classList.toggle("hide");
       document.getElementById("SQS-L").focus();
-      previousDisplayState = currentDisplayState; //update Display State history
-      currentDisplayState = 3;
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }      currentDisplayState = 3;
       break;
     case 4:
       //State 4 - scanning-qty-state
       document.getElementById("scanning-qty-state").classList.toggle("hide");
       document.getElementById("LS-LR").focus();
-      previousDisplayState = currentDisplayState; //update Display State history
-      currentDisplayState = 4;
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }      currentDisplayState = 4;
       break;
     case 5:
       //State 5 - error-state
       document.getElementById("error-state").classList.toggle("hide");
       //no focus needed -- no direct input
-      previousDisplayState = currentDisplayState; //update Display State history
-      currentDisplayState = 5;
-      console.log("Main: current display: ", currentDisplayState);
-      console.log("Main: previous display: ", previousDisplayState);
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }      currentDisplayState = 5;
       break;
     case 6:
       //State 6 - login-state
       document.getElementById("login-state").classList.toggle("hide");
       document.getElementById("LS-LR").focus();
       //console.log("Change should have occured");
-      previousDisplayState = currentDisplayState; //update Display State history
-      currentDisplayState = 6;
-      console.log("Main: current display: ", currentDisplayState);
-      console.log("Main: previous display: ", previousDisplayState);
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }      currentDisplayState = 6;
       break;
     case 7:
       //State 6 - login-state
       document.getElementById("option-state").classList.toggle("hide");
       //no focus needed - screen has no direct input
-      previousDisplayState = currentDisplayState; //update Display State history
-      setStatus = 7;
+      if(currentDisplayState != state){//only update to a new state
+        previousDisplayState = currentDisplayState; //update Display State history
+      }      setStatus = 7;
       break;
   }
+
+  console.log("Main: current display: ", currentDisplayState);
+  console.log("Main: previous display: ", previousDisplayState);
 
 }//end function
 
@@ -197,35 +204,224 @@ function card(cardType, cardStatus){
   this.balance = balance;
 }
 
-function login(){
+function login(part, number){
   console.log("login called");
   //function handles all elements required to log in.
-  if(loggedIn == 0){ // 0 = logged out
-    //output login screen
-    changeState(6); //login-screen
-    document.getElementById("LS-U").value = "Cashier: " + user.name;
-    document.getElementById("LS-LR").value = "---";
-    //replace default "---" with numbers
-    //if no hyphen, then forbit further input
 
-    let defaultId = "---"; //value of ID if user hits clear
-    let defaultPin = "----"; //value of PIN if user hits clear
-    let xin = document.getElementById("LS-LR").value;
-    let searchResults = xin.search("-");
-    //console.log("search: ", searchResults);
-    if(searchResults == 0){ //hyphen found, input less than 3
-      //replace string
-      console.log("Original value of: ", xin);
-      let xinMod = xin.substring(1,4);
-      console.log("Corrected value of: ", xinMod);
-      document.getElementById("LS-LR").value = xinMod;
-    } else { //no hypen found
-      console.log("Input too long");
-      changeState(5);
-      document.getElementById("ES-U").value = "<<< ERROR >>>";
-      document.getElementById("ES-L").value = "Input Too Long"
+  //login script is called by several different functions, eventListeners.
+  //Paramter "part" allows the script to be responsive and jump past parts already complete by user
+  //Paramter "number" passes in the number collected by the eventListeners
+  //** only needed for [0-9], ENTER and CLEAR are handled by "part"
+
+  //idPass is critical determining location in script since the eventListeners cannot
+  //** distinguish where in the script it should send a user
+  //** idPass must be set outside of function in the main script
+  //idPass = true ----- id was entered correctly and script should be asking for PIN information
+  //idPass = false ---- id hasn't been confirmed as correct -- script is asking for ID information
+
+
+  // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
+  //Part 1 - called by [0-9] eventListener
+  //Part 2 - called by ENTER eventListener
+  //Part 3 - called by CLEAR eventListener
+
+  // -- ID SCRIPTS -- output user input, checks input against user profile
+  //part 4 - PRINT ID display
+  //part 5 - print user input for ID
+  //part 6 - check for ID match
+  //part 7 - clear ID input
+
+  // -- PIN SCRIPTS --
+  //part 8 - PRINT PIN display
+  //part 9 - print user input for PIN
+  //part 10 - check for PIN match
+  //part 11 - clear PIN input
+
+  //create optional parameters
+  if(part === undefined){
+    //this should only be used by call from MAIN script
+    part = 0;
+    idPass = 0;
   }
-}
+  if(number === undefined){
+    number = 0;
+  }
+
+  if(loggedIn == 0){
+    switch (part) {
+      case 0: //called by MAIN -- default paramter value
+        //assuming called by Main, start login script
+        login(4);
+        break;
+    //*****************************************************
+      case 1: //called by [0-9] eventListener
+        if(idPass == 0){ //if ID confirmed
+          //print ID user input
+          login(5, number);
+          break;
+        } else {
+          //print PIN user input
+          login(9, number);
+          break;
+        }
+    //*****************************************************
+      case 2: //called by ENTER eventListener
+        if(idPass == 0){ //if ID confirmed
+          //redirect to CHECK ID
+          login(6);
+          break;
+        } else {
+          //redirect to CHECK PIN
+          login(10);
+          break;
+        }
+    //*****************************************************
+      case 3: //called by CLEAR eventListener
+
+        if(idPass == 0){ //if ID confirmed
+          //redirect to ID clear
+          login(7);
+          break;
+        } else {
+          //redirect to PIN clear
+          login(11);
+          break;
+        }
+    //*****************************************************
+      case 4: //PRINT ID display
+          //output login screen
+          changeState(6); //login-screen
+          document.getElementById("LS-U").value = "Cashier: " + user.name;
+          document.getElementById("LS-LL").value = "Login:";
+          document.getElementById("LS-LR").value = "---";
+        break;
+    //*****************************************************
+      case 5: //PRINT user input for ID
+
+        //replace default "---" with numbers
+        //if no hyphen, then forbid further input
+        xin = document.getElementById("LS-LR").value;
+        xin += number; //number passed in from eventListener (screen click)
+        searchResults = xin.search("-");
+        if(searchResults == 0){ //hyphen found, input less than 3
+          //replace string
+          console.log("Original value: ", xin);
+          xinMod = xin.substring(1,4);
+          console.log("Corrected value: ", xinMod);
+          document.getElementById("LS-LR").value = xinMod;
+        } else { //no hypen found
+          console.log("Input too long");
+          changeState(5);
+          document.getElementById("ES-U").value = "Input Too Long";
+          document.getElementById("ES-L").value = "Press Clear"
+        }
+        break;
+    //*****************************************************
+      case 6: //check for ID match
+
+        //remove all hyphens then check for match with user ID
+        xin = document.getElementById("LS-LR").value;
+        xinMod = xin.replace(/-/g,"");
+        //console.log("Original: " + xin + " Corrected: " + xinMod);
+
+        if(xinMod == user.id){
+          //input matches id
+          console.log("ID correct");
+          idPass = 1;
+          //redirect to -- PRINT PIN display
+          login(8);
+        } else {
+          console.log("ID wrong");
+          //Print error message
+          changeState(5);
+          document.getElementById("ES-U").value = "ID Incorrect";
+          document.getElementById("ES-L").value = "Press Clear";
+        }
+        break;
+    //*****************************************************
+      case 7: //clear ID input
+
+        //CASE 7 isn't really needed now, i'm including it here in case I need to
+        //** add scripting to the clear button in future
+        login(4);
+        break;
+    //*****************************************************
+      case 8: //print PIN display
+
+        //initialize PIN display
+        changeState(6);
+        document.getElementById("LS-U").value = "Cashier: " + user.name;
+        document.getElementById("LS-LL").value = "PIN:";
+        document.getElementById("LS-LR").value = "----";
+        break;
+    //*****************************************************
+      case 9: //print user input for PIN
+
+        //replace default "----" with numbers
+        //if no hyphen, then forbid further input
+        xin = document.getElementById("LS-LR").value;
+        xin += number; //number passed in from eventListener (screen click)
+        searchResults = xin.search("-");
+        if(searchResults == 0){ //hyphen found, input less than 3
+          //replace string
+          console.log("Original value: ", xin);
+          xinMod = xin.substring(1,5);
+          console.log("Corrected value: ", xinMod);
+          document.getElementById("LS-LR").value = xinMod;
+        } else { //no hypen found
+          console.log("Input too long");
+          changeState(5);
+          document.getElementById("ES-U").value = "Input Too Long";
+          document.getElementById("ES-L").value = "Press Clear"
+        }
+          break;
+    //*****************************************************
+      case 10: //check for PIN match
+
+        //remove any hyphens
+        xin = document.getElementById("LS-LR").value;
+        xinMod = xin.replace(/-/g,"");
+        console.log("Original: " + xin + " Corrected: " + xinMod);
+
+        if(xinMod == user.pin){
+          //input matches id
+          console.log("PIN correct");
+          loggedIn = 1;
+          scan();
+        } else {
+          console.log("PIN wrong");
+          idPass = 0; //reset to ID check
+          changeState(5);
+          document.getElementById("ES-U").value = "PIN Incorrect";
+          document.getElementById("ES-L").value = "Press Clear"
+        }
+        break;
+    //*****************************************************
+      case 11: //clear PIN input
+        //CASE 11 isn't really needed now, i'm including it here in case I need to
+        //** add scripting to the clear button in future
+
+        login(8);
+        break;
+    //*****************************************************
+      default: //default used for debugging
+        console.log("ERROR: \"Part\" parameter for function Login no match");
+        break;
+    } //end switch
+  } else {
+    console.log("login called, but user already logged in");
+  }
+}//end function
+
+function scan(){
+  console.log("scan called");
+
+  //Print starting display -- shown at each start of scan cycle
+  changeState(5);
+  document.getElementById("ES-U").value = "Check Under Cart";
+  document.getElementById("ES-L").value = "Begin Scanning";
+
+
 }//end function
 
 function logout(){
@@ -236,6 +432,37 @@ function logout(){
 
   }
 }//end fucntion
+
+function code(codeIn){
+  console.log("codes called");
+
+  //codes can be entered from any state (expect when logged out) and can be used
+  //** to perform different functions on the register
+
+  switch (codeIn) {
+    case 1: //logout
+      logout();
+      break;
+    case 2: //change PIN
+      changePin();
+      break;
+    case 77: //print all NLU
+      printNLU();
+      break;
+    case 78: //print last receipt
+      printLast();
+      break;
+    case 86: //end shift
+      endShift();
+      break;
+    case 94: //cash drop
+      cashDrop();
+      break;
+    default: //code not found
+      console.log("code not found");
+
+  }
+}
 
 function buttonEventListeners(){
   console.log("buttonEventListeners called");
@@ -828,7 +1055,32 @@ function state5BtnActions(input){
     console.log("employee clicked - State 1 - No action");
       break;
     case "clear":
-    console.log("clear clicked - State 1 - Active");
+    console.log("clear clicked - State 5 - Active");
+      switch (previousDisplayState) {
+        case 1:
+
+          break;
+        case 2:
+
+          break;
+        case 3:
+
+          break;
+        case 4:
+
+          break;
+        case 5:
+
+          break;
+        case 6: //came from login
+          login(3); //resets login script
+          break;
+        case 7:
+
+          break;
+        default:
+
+      }
       break;
     case "mark-down":
     console.log("Mark Down clicked - State 1 - Active");
@@ -840,6 +1092,7 @@ function state5BtnActions(input){
     console.log("void clicked - State 1 - No action");
       break;
     case "7":
+      scan(1);
     console.log("7 clicked - State 1 - Active");
       break;
     case "8":
@@ -904,94 +1157,76 @@ function state6BtnActions(input){
   //State 1 - Total State
   switch (input) {
     case "code":
-    console.log("Code clicked - State 1 - Active");
       break;
     case "suspend":
-    console.log("Suspend clicked - State 1 - Active");
       break;
     case "verify":
-    console.log("verify clicked - State 1 - Active");
       break;
     case "tax":
-    console.log("tax clicked - State 1 - No action");
       break;
     case "no-sale":
-    console.log("No Sale clicked - State 1 - Active");
       break;
     case "eggs":
-    console.log("Eggs clicked - State 1 - Active");
       break;
     case "plastic":
-    console.log("plastic clicked - State 1 - Active");
       break;
     case "employee":
-    console.log("employee clicked - State 1 - No action");
       break;
     case "clear":
-    console.log("clear clicked - State 1 - Active");
+    login(3);
       break;
     case "mark-down":
-    console.log("Mark Down clicked - State 1 - Active");
       break;
     case "price-override":
-    console.log("Price Override clicked - State 1 - Active");
       break;
     case "void":
-    console.log("void clicked - State 1 - No action");
       break;
     case "7":
-    console.log("7 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "8":
-    console.log("8 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "9":
-    console.log("9 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "4":
-    console.log("4 clicked - State 1 - No action");
+    login(1, input);
       break;
     case "5":
-    console.log("5 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "6":
-    console.log("6 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "1":
-    console.log("1 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "2":
-    console.log("2 clicked - State 1 - No action");
+    login(1, input);
       break;
     case "3":
-    console.log("3 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "0":
-    console.log("0 clicked - State 1 - Active");
+    login(1, input);
       break;
     case "subtotal":
-    console.log("subtotal clicked - State 1 - Active");
       break;
     case "paper":
-    console.log("paper clicked - State 1 - No action");
       break;
     case "qty":
-    console.log("qty clicked - State 1 - Active");
       break;
     case "total":
-    console.log("total clicked - State 6 - Active");
       break;
     case "enter":
-    console.log("enter clicked - State 1 - Active");
+    login(2);
       break;
     case "card":
-    console.log("card clicked - State 1 - No action");
       break;
     case "gift-card":
-    console.log("Gift Card clicked - State 1 - Active");
       break;
     case "Cash":
-    console.log("Cash clicked - State 1 - Active");
       break;
     default:
       console.log("ERROR: could not find the button you clicked");
@@ -1119,54 +1354,49 @@ ajax.open(method, url, asynchronous);
 //sending ajax request
 ajax.send();
 
-//receiving responce from load_data.PHP
+// -- IF A COMMENT REFERS YOU TO THE "MAIN FUNCTION" THIS IS IT...
 ajax.onreadystatechange = function()
 {
   if (this.readyState == 4 && this.status == 200)
   {
+
     console.log("Ajax started...");
-    //alert(this.responseText);
     //converting JSON back into array
-    //console.log(this.responseText);
     data = JSON.parse(this.responseText);
-    //console.log(data); //for debuggin
 
     //set variables
-    loggedIn = 0 //0 = logged out, 1 = logged in
+    shiftSet = 0;
+    loggedIn = 0; //0 = logged out, 1 = logged in
     previousDisplayState = 0; //what the last display state was (used to turn of event listeners)
     currentDisplayState = 1; //what is the display state
     //value is changed by changeState()
     //value is needed for event listeners to know what to listen to
+
+    //user will be set by savedUsers()
     user = {
       name:"Benjamin",
       id:"77",
-      pin:"2361"
+      pin:"2222"
     };
-    defaultDisabled = 0; //used in manageStaticEventListeners, if value = 1, then default buttons defaultDisabled
-    //different screen states will only allow certain key presses
-    //such as error, total, and login
-    btnGroup1 = 0; //1 = on 0 = off
-    btnGroup2 = 0;
-    btnGroup3 = 0;
 
-
-    //initialize display
+    idPass = 0; //DO NOT DELETE -- used by login() -- documentation for use in login()
 
     //load eventListener
-    //manageStaticEventListeners();
     buttonEventListeners();
+    count = 0; //for testing the do/while
 
-    //changeState(6, currentDisplayState); //login screen
-    //login();
+    //login -- first sign in includes a user database load (eventually)
+    if(loggedIn == 0){//if not logged in, call login script
+      login();
+      //if shift not started, start shift
+      if(shiftSet == 0){
+        //shiftSet = 1;
+      }
+    }
 
-    console.log("Main: current display: ", currentDisplayState);
-    console.log("Main: previous display: ", previousDisplayState);
+    //scan();
 
-    //initialixe event listeners
-    //manageEventListeners();
-
-    //var cat = searchFood("1");
-    //console.log("Search Results: ", data[cat]);
+    printData();
 
   }//END OF AJAX
 }//END OF AJAX
