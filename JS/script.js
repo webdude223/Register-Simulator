@@ -219,6 +219,8 @@ function login(part, number){
   //idPass = true ----- id was entered correctly and script should be asking for PIN information
   //idPass = false ---- id hasn't been confirmed as correct -- script is asking for ID information
 
+  // -- DEFAULT --
+  //Part 0 - called from main - no parameters needed
 
   // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
   //Part 1 - called by [0-9] eventListener
@@ -413,14 +415,120 @@ function login(part, number){
   }
 }//end function
 
-function scan(){
+function addMoney(xin, yin){
+  console.log("addMoney called");
+  return (xin * 100 + yin * 100) / 100;
+}
+
+function subtractMoney(xin, yin){
+  console.log("subtractMoney called");
+  return (xin * 100 - yin * 100) / 100;
+}
+
+function addToSubTotal(xin){
+  console.log("addToSubTotal called");
+  if(subTotal > 0){
+    console.log("debug 1");
+    subTotal = (xin * 100 + subTotal * 100) / 100;
+  } else {
+    subTotal = xin;
+    console.log("debug 2");
+  }
+}//end function
+
+function scan(part, item){
   console.log("scan called");
 
-  //Print starting display -- shown at each start of scan cycle
-  changeState(5);
-  document.getElementById("ES-U").value = "Check Under Cart";
-  document.getElementById("ES-L").value = "Begin Scanning";
+  //Function SCAN() handles all elements regarding scanning an item
+  //Paramter "part" will jump to the part of the function relevent at the time of the call
+  //Paramter "item" will pass in the item being scanned
 
+
+  // -- DEFAULT --
+  //Part 0 - called from login() - no parameters needed
+
+  // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
+  //Part 1 - called by [0-9] eventListener
+  //Part 2 - called by ENTER eventListener
+  //Part 3 - called by CLEAR eventListener
+
+  // -- Keyin SCRIPTS -- output user input, checks input against user profile
+  //part 4 - PRINT ID display
+  //part 5 - print user input for ID
+  //part 6 - check for ID match
+  //part 7 - clear ID input
+
+  // -- PIN SCRIPTS --
+  //part 8 - PRINT PIN display
+  //part 9 - print user input for PIN
+  //part 10 - check for PIN match
+  //part 11 - clear PIN input
+
+
+  switch (part) {
+    case 0: //default display
+      changeState(5);
+      document.getElementById("ES-U").value = "Check Under Cart";
+      document.getElementById("ES-L").value = "Begin Scanning";
+      break;
+    case 1: //sort by keyin
+      if(triggerKeyIn == 0){ //0 = change state
+        scan(2, input);
+      } else {
+        scan(3, input);
+      }
+      break;
+    case 2: //print keyin screen
+      changeState(3);
+      document.getElementById("SKS-U").value = data[lastItem].Description;
+      document.getElementById("SKS-L").value = "";
+      break;
+    case 3: //print user input for keyin screen
+      xin = document.getElementById("SKS-L").value;
+      xin += item;
+      document.getElementById("SKS-L").value = xin;
+      break;
+    case 4: //main
+      changeState(2);
+      index = searchFood(item);
+
+      //set lastItem
+      if(lastItem != index){ //if the last item is NOT the same as the current item....
+        lastItem = index;
+        itemCount = 1; //setting itemCount equal to 1 is reset
+      } else {
+        //if lastItem == index
+        //**this means that index is repeating, and a count is needed
+        //**therefor increment counter
+        itemCount++;
+      }
+
+      //check for weight info here...
+
+      //check for id here...
+
+      //Check if one sale, then add Full/Sale price to subtotal
+      if(data[index].Sale_Active == 1){ //1 = true -- true = on sale
+        addToSubTotal(data[index].Sale_Price);
+        thePrice = data[index].Sale_Price;
+      } else {
+        addToSubTotal(data[index].Full_Price);
+        thePrice = data[index].Full_Price;
+      }
+
+
+      document.getElementById("SS-U").value = data[index].Description;
+      document.getElementById("SS-LL").value = thePrice;
+      document.getElementById("SS-LC").value = itemCount;
+      document.getElementById("SS-LR").value = subTotal;
+      break;
+
+    case 5: //print results to receipt
+      break;
+    default:
+      console.log("default of scan() switch called");
+      break;
+  }//end switch
 
 }//end function
 
@@ -445,6 +553,8 @@ function code(codeIn){
       break;
     case 2: //change PIN
       changePin();
+      break;
+    case 6: //return
       break;
     case 77: //print all NLU
       printNLU();
@@ -767,34 +877,44 @@ function state2BtnActions(input){
     console.log("void clicked - State 2 - No action");
       break;
     case "7":
-    console.log("7 clicked - State 2 - Active");
+      console.log("7 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "8":
-    console.log("8 clicked - State 2 - Active");
+      console.log("8 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "9":
-    console.log("9 clicked - State 2 - Active");
+      console.log("9 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "4":
-    console.log("4 clicked - State 2 - No action");
+      console.log("4 clicked - State 2 - No action");
+      scan(2, input);
       break;
     case "5":
-    console.log("5 clicked - State 2 - Active");
+      console.log("5 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "6":
-    console.log("6 clicked - State 2 - Active");
+      console.log("6 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "1":
-    console.log("1 clicked - State 2 - Active");
+      console.log("1 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "2":
-    console.log("2 clicked - State 2 - No action");
+      console.log("2 clicked - State 2 - No action");
+      scan(2, input);
       break;
     case "3":
-    console.log("3 clicked - State 2 - Active");
+      console.log("3 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "0":
-    console.log("0 clicked - State 2 - Active");
+      console.log("0 clicked - State 2 - Active");
+      scan(2, input);
       break;
     case "subtotal":
     console.log("subtotal clicked - State 2 - Active");
@@ -1380,6 +1500,10 @@ ajax.onreadystatechange = function()
     };
 
     idPass = 0; //DO NOT DELETE -- used by login() -- documentation for use in login()
+    subTotal = 0; //used for calculating subtotal -- documentation in scan()
+    lastItem = 0; //used to count sequencial scanned items -- documentation in scan()
+    itemCount = 0;
+    triggerKeyIn = 0;
 
     //load eventListener
     buttonEventListeners();
