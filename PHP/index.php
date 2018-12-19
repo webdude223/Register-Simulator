@@ -108,7 +108,7 @@
 
     <div id="scale">
       <h2 class="text-center">Scale<h2>
-      <input class="scale" type="text" value="2.47 lbs">
+      <input id="scale-display" class="scale" type="text" value="2.47 lbs">
     </div> <!-- END SCALE -->
 
     <div id="display">
@@ -172,6 +172,16 @@
           </tr>
           <tr>
             <td><input id="ES-L" class="table-form text-center" type="text" value="<<< Press Clear >>>"></td>
+          </tr>
+        </table>
+      </section>
+      <section id="message-state">
+        <table>
+          <tr>
+            <td><input id="MS-U" class="table-form text-center" type="text" value="Check Under Cart"></td>
+          </tr>
+          <tr>
+            <td><input id="MS-L" class="table-form text-center" type="text" value="Ready Scan Item"></td>
           </tr>
         </table>
       </section>
@@ -259,27 +269,27 @@
       <table class="wallet-list-1">
         <tbody id="mywallet"></tbody>
         <tr>
-          <td>Debit Card</td>
+          <td>Debit <span style="color:green; font-size:smaller">Active</span></td>
           <td>Bal: 129.65</td>
           <td><button class="use-btn" type="button">Pay</button></td>
         </tr>
         <tr>
-          <td>Credit Card 1</td>
+          <td>Credit <span style="color:blue; font-size:smaller">Inactive</span></td>
           <td>Bal: $129.65</td>
           <td><button class="use-btn" type="button">Pay</button></td>
         </tr>
         <tr>
-          <td>Credit Card 2</td>
+          <td>Credit <span style="color:red; font-size:smaller">Stolen</span></td>
           <td>Bal: $129.65</td>
           <td><button class="use-btn" type="button">Pay</button></td>
         </tr>
         <tr>
-          <td>EBT 1</td>
+          <td>EBT <span style="color:red; font-size:smaller">Fraud</span></td>
           <td>Bal: $129.65</td>
           <td><button class="use-btn" type="button">Pay</button></td>
         </tr>
         <tr>
-          <td>EBT 2</td>
+          <td>EBT <span style="color:blue; font-size:smaller">Expired</span></td>
           <td>Bal: $129.65</td>
           <td><button class="use-btn" type="button">Pay</button></td>
         </tr>
@@ -317,7 +327,7 @@
       </table>
     </div> <!-- END WALLET -->
 
-  </div>
+  </div><!-- END MAIN -->
 
   <div id="test-area">
 
@@ -378,6 +388,17 @@
         </tr>
         <tr>
           <td><input class="table-form text-center" type="text" value="<<< Press Clear >>>"></td>
+        </tr>
+      </table>
+    </section>
+    <br/>
+    <section id="message-state">
+      <table>
+        <tr>
+          <td><input class="table-form text-center" type="text" value="Check Under Cart"></td>
+        </tr>
+        <tr>
+          <td><input class="table-form text-center" type="text" value="Ready Scan Item"></td>
         </tr>
       </table>
     </section>

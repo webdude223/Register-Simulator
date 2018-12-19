@@ -1,208 +1,124 @@
-function login(part, number){
-  console.log("login called");
-  //function handles all elements required to log in.
+DISPLAY STATES
 
-  //login script is called by several different functions, eventListeners.
-  //Paramter "part" allows the script to be responsive and jump past parts already complete by user
-  //Paramter "number" passes in the number collected by the eventListeners
-  //** only needed for [0-9], ENTER and CLEAR are handled by "part"
-
-  //idPass is critical determining location in script since the eventListeners cannot
-  //** distinguish where in the script it should send a user
-  //** idPass must be set outside of function in the main script
-  //idPass = true ----- id was entered correctly and program should be asking for PIN information
-  //idPass = false ---- id hasn't been confirmed as correct -- script is asking for ID information
+1 - total
+2 - scanning
+3 - scanning keyin
+4 - scanning qty
+5 - error state
+6 - message state
+7 - login state
+8 - option state
 
 
-  // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
-  //Part 1 - called by [0-9] eventListener
-  //Part 2 - called by ENTER eventListener
-  //Part 3 - called by CLEAR eventListener
+PROGRAM STATES
 
-  // -- ID SCRIPTS -- output user input, checks input against user profile
-  //part 4 - PRINT ID display
-  //part 5 - print user input for ID
-  //part 6 - check for ID match
-  //part 7 - clear ID input
+1 - login
+2 - scanning
+3 - total
+4 - payment
+5 - message
+6 - error
+7 - new cart
 
-  // -- PIN SCRIPTS --
-  //part 8 - PRINT PIN display
-  //part 9 - print user input for PIN
-  //part 10 - check for PIN match
-  //part 11 - clear PIN input
+display state manages which display set to use
 
-  //create optional parameters
-  if(part === undefined){
-    //this should only be used by call from MAIN script
-    part = 0;
-    idPass = 0;
-  }
-  if(number === undefined){
-    number = 0;
-  }
+program state manages how buttons interact with the program, which are active, etc
 
-  if(loggedIn == 0){
-    switch (part) {
-      case 0: //called by MAIN -- default paramter value
-        //assuming called by Main, start login script
-        login(4);
-        break;
-    //*****************************************************
-      case 1: //called by [0-9] eventListener
-        if(idPass == 0){ //if ID confirmed
-          //print ID user input
-          login(5, number);
-          break;
-        } else {
-          //print PIN user input
-          login(9, number);
-          break;
-        }
-    //*****************************************************
-      case 2: //called by ENTER eventListener
-        if(idPass == 0){ //if ID confirmed
-          //redirect to CHECK ID
-          login(6);
-          break;
-        } else {
-          //redirect to CHECK PIN
-          login(10);
-          break;
-        }
-    //*****************************************************
-      case 3: //called by CLEAR eventListener
+var fid = data[i].FID;
+var desc = data[i].Description;
+var nlu = data[i].NLU;
+var upc = data[i].UPC;
+var sc = data[i].Smart_Code;
+var id = data[i].ID_Verification;
+var type = data[i].Type;
+var f_price = data[i].Full_Price;
+var s_price = data[i].Sale_Price;
+var o_sale = data[i].Sale_Active;
+var is_weighed = data[i].Is_Weighed;
+var inventory = data[i].Inventory;
 
-        if(idPass == 0){ //if ID confirmed
-          //redirect to ID clear
-          login(7);
-          break;
-        } else {
-          //redirect to PIN clear
-          login(11);
-          break;
-        }
-    //*****************************************************
-      case 4: //PRINT ID display
-          //output login screen
-          changeState(6); //login-screen
-          document.getElementById("LS-U").value = "Cashier: " + user.name;
-          document.getElementById("LS-LL").value = "Login:";
-          document.getElementById("LS-LR").value = "---";
-        break;
-    //*****************************************************
-      case 5: //PRINT user input for ID
+//set variables
+{
+  //login() variables
+  shiftSet = 0; // set once per shift on first login and last logout (code 86) -- used to track user data over entire day
+  loggedIn = 0; //0 = logged out, 1 = logged in
 
-        //replace default "---" with numbers
-        //if no hyphen, then forbid further input
-        xin = document.getElementById("LS-LR").value;
-        xin += number; //number passed in from eventListener (screen click)
-        searchResults = xin.search("-");
-        if(searchResults == 0){ //hyphen found, input less than 3
-          //replace string
-          console.log("Original value: ", xin);
-          xinMod = xin.substring(1,4);
-          console.log("Corrected value: ", xinMod);
-          document.getElementById("LS-LR").value = xinMod;
-        } else { //no hypen found
-          console.log("Input too long");
-          changeState(5);
-          document.getElementById("ES-U").value = "Input Too Long";
-          document.getElementById("ES-L").value = "Press Clear"
-        }
-        break;
-    //*****************************************************
-      case 6: //check for ID match
+  //changeProgramState variables
+  previousProgramState = 0; //previous program state
+  currentProgramState = 1; //current program state
 
-        //remove all hyphens then check for match with user ID
-        xin = document.getElementById("LS-LR").value;
-        xinMod = xin.replace(/-/g,"");
-        //console.log("Original: " + xin + " Corrected: " + xinMod);
+  //Program States
+  PS_LOGIN = 1;
+  PS_SCANNING = 2;
+  PS_TOTAL = 3;
+  PS_PAYMENT = 4;
+  PS_MESSAGE = 5;
+  PS_ERROR = 6;
+  PS_NEWCART = 7;
 
-        if(xinMod == user.id){
-          //input matches id
-          console.log("ID correct");
-          idPass = 1;
-          //redirect to -- PRINT PIN display
-          login(8);
-        } else {
-          console.log("ID wrong");
-          //Print error message
-          changeState(5);
-          document.getElementById("ES-U").value = "ID Incorrect";
-          document.getElementById("ES-L").value = "Press Clear";
-        }
-        break;
-    //*****************************************************
-      case 7: //clear ID input
+  //changeDisplayState() variables
+  previousDisplayState = 0; //previous display state
+  currentDisplayState = 1; //current display state
 
-        //CASE 7 isn't really needed now, i'm including it here in case I need to
-        //** add scripting to the clear button in future
-        login(4);
-        break;
-    //*****************************************************
-      case 8: //print PIN display
+  //Display States
+  DS_TOTAL = 1;
+  DS_SCANNING = 2;
+  DS_SCAN_KEYIN = 3;
+  DS_SCAN_QTY = 4;
+  DS_ERROR = 5;
+  DS_MESSAGE = 6;
+  DS_LOGIN = 7;
+  DS_OPTION = 8;
 
-        //initialize PIN display
-        document.getElementById("LS-U").value = "Cashier: " + user.name;
-        document.getElementById("LS-LL").value = "PIN:";
-        document.getElementById("LS-LR").value = "----";
-        break;
-    //*****************************************************
-      case 9: //print user input for PIN
+  //user will be set by savedUsers()
+  user = {
+    name:"Benjamin",
+    id:"77",
+    pin:"2222"
+  };
 
-        //replace default "----" with numbers
-        //if no hyphen, then forbid further input
-        xin = document.getElementById("LS-LR").value;
-        xin += number; //number passed in from eventListener (screen click)
-        searchResults = xin.search("-");
-        if(searchResults == 0){ //hyphen found, input less than 3
-          //replace string
-          console.log("Original value: ", xin);
-          xinMod = xin.substring(1,5);
-          console.log("Corrected value: ", xinMod);
-          document.getElementById("LS-LR").value = xinMod;
-        } else { //no hypen found
-          console.log("Input too long");
-          changeState(5);
-          document.getElementById("ES-U").value = "Input Too Long";
-          document.getElementById("ES-L").value = "Press Clear"
-        }
-          break;
-    //*****************************************************
-      case 10: //check for PIN match
+  store = {
+    number:"22",
+    address:"2617 Lakeside Dr, Lynchburg, VA 24501",
+    website:"www.ALDI.us"
+  };
 
-        //remove any hyphens
-        xin = document.getElementById("LS-LR").value;
-        xinMod = xin.replace(/-/g,"");
-        console.log("Original: " + xin + " Corrected: " + xinMod);
+  //login() variables
+  idPass = 0; //determine if entered ID or PIN
 
-        if(xinMod == user.pin){
-          //input matches id
-          console.log("PIN correct");
-          changeState(5);
-          document.getElementById("ES-U").value = "Check Under Cart";
-          document.getElementById("ES-L").value = "Begin Scanning";
-        } else {
-          console.log("PIN wrong");
-          idPass = 0; //reset to ID check
-          changeState(5);
-          document.getElementById("ES-U").value = "PIN Incorrect";
-          document.getElementById("ES-L").value = "Press Clear"
-        }
-        break;
-    //*****************************************************
-      case 11: //clear PIN input
 
-        //CASE 11 isn't really needed now, i'm including it here in case I need to
-        //** add scripting to the clear button in future
-        login(8);
-        break;
-    //*****************************************************
-      default: //default used for debugging
-        console.log("ERROR: \"Part\" parameter for function Login no match");
-        break;
-    } //end switch
-  } else {
-    console.log("login called, but user already logged in");
-  }
-}//end function
+
+  //scan() variables
+  newCart = 0; //if nothing in cart
+  newItemQty = 0; //If qty is used
+  cartId = 1; //start
+  itemCount = 1; //counts sequential items
+  lastItem = undefined; //used to count sequential items, compares current item to last item
+  thePrice = 0; //price of item
+  subTotal = 0; //running subtotal of order
+  checkID = 0; //change to 1 if an item requires ID verification
+  COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
+  scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
+
+
+
+  //buildCartArray() variables
+  myCart = new Array({
+    index: 0,
+    quantity: 0,
+    weight: 0,
+    void: false
+  });
+  myCartIndex = 0; //used to index the myCart array
+
+  //saveCartToArray() variables
+  allMyCarts = new Array(myCart);
+  allMyCartsIndex = 0;
+
+  //newPrinterTest() variables
+  currentCartId = 1;
+  cancelStandardOut = 0;
+  cancelQuantityOut = 0;
+  cancelWeightedOut = 0;
+
+}

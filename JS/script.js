@@ -1,4 +1,4 @@
-console.log("Page Load Success v.2.7");
+console.log("Page Load Success v.3.2");
 
 //define functions
 function printData(){
@@ -59,22 +59,39 @@ function printData(){
   }//end testing function
 
 function searchFood(searchInput){
-  console.log("SearchFood Called");
+  console.log("SearchFood Called - scanning for: ", searchInput);
   //determind if search is NLU, Smart Code, UPC
   //NLU is 1 or 2 characters
   //Smart code is 5 characters
   //UPC is 12 Characters
 
+  //return values
+  //if found -- returns index of item
+  //index must be plugged into data array
+  //data[i]
+
+  //if not found
+  //return 0
+
+  //if number invalid
+  //return -1
+
   //Check for NLU
   if(searchInput.length <= 2){
-    console.log("Checking NLU codes...");
+    console.log("Checking NLU codes...", searchInput);
     //Loop through data
     for(var i = 0; i < data.length; i++){
       console.log("Row: ", i);
-      if(data[i].NLU == searchInput){
+      if(data[i].NLU == searchInput){ //if item found....
         console.log("SEARCH RESULTS FOUND: ", data[i].Description);
         return i;
         //break;
+      }
+
+      let lastItemInArray = data.length - 1; //subtract 1 because .length doesn't include 0
+      if(i == lastItemInArray){ //if no match found....
+        console.log("FOOD ITEM NOT FOUND");
+        return 0;
       }
     }
   } else
@@ -90,6 +107,12 @@ function searchFood(searchInput){
         return i;
         //break;
       }
+
+      let lastItemInArray = data.length - 1; //subtract 1 because .length doesn't include 0
+      if(i == lastItemInArray){ //if no match found....
+        console.log("FOOD ITEM NOT FOUND");
+        return 0;
+      }
     }
   } else
 
@@ -99,110 +122,484 @@ function searchFood(searchInput){
       //Loop through data
       for(var i = 0; i < data.length; i++){
         console.log("Row: ", i);
-        if(data[i].NLU == searchInput){
+        if(data[i].UPC == searchInput){
           console.log("SEARCH RESULTS FOUND: ", data[i].Description);
           return i;
           //break;
+        }
+
+        let lastItemInArray = data.length - 1; //subtract 1 because .length doesn't include 0
+        if(i == lastItemInArray){ //if no match found....
+          console.log("FOOD ITEM NOT FOUND");
+          return 0;
         }
       }
     } else {
         //number type doesn't match NLU, SC, or UPC
         console.log("Number not valid");
-        return 0;
+        return -1;
     }
 }//end function
 
 function hideState(){
   console.log("hideState called");
+  //hides all states, changeDisplayState() then disables the "hide" css attribute
+  //and the display snaps back to position in window
+
   //hide all states
   document.getElementById("total-state").classList.add("hide");
   document.getElementById("scanning-state").classList.add("hide");
   document.getElementById("scanning-keyin-state").classList.add("hide");
   document.getElementById("scanning-qty-state").classList.add("hide");
   document.getElementById("error-state").classList.add("hide");
+  document.getElementById("message-state").classList.add("hide");
   document.getElementById("login-state").classList.add("hide");
   document.getElementById("option-state").classList.add("hide");
 }
 
-function changeState(state){
-  console.log("changeState called");
+outOfPaper = 0; // trigger point set to 5
+pickupNeeded = 0; //trigger set at 1400;
 
-  //reset all states to hide
-  hideState();
+function messageBanner(){
+  console.log("messageBanner called");
 
-  //Then based on paramter toggle one state back on
-  switch(state){
-    case 1:
-      //State 1 - total-state
-      document.getElementById("total-state").classList.toggle("hide");
-      document.getElementById("TS-LR").focus();
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }
-      currentDisplayState = 1;
-      break;
-    case 2:
-      //State 2 - scanning-state
-      document.getElementById("scanning-state").classList.toggle("hide");
-      //no focus needed -- output only. A keyin will trigger new state
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }      currentDisplayState = 2;
-      break;
-    case 3:
-      //State 3 - scanning-keyin-state
-      document.getElementById("scanning-keyin-state").classList.toggle("hide");
-      document.getElementById("SQS-L").focus();
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }      currentDisplayState = 3;
-      break;
-    case 4:
-      //State 4 - scanning-qty-state
-      document.getElementById("scanning-qty-state").classList.toggle("hide");
-      document.getElementById("LS-LR").focus();
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }      currentDisplayState = 4;
-      break;
-    case 5:
-      //State 5 - error-state
-      document.getElementById("error-state").classList.toggle("hide");
-      //no focus needed -- no direct input
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }      currentDisplayState = 5;
-      break;
-    case 6:
-      //State 6 - login-state
-      document.getElementById("login-state").classList.toggle("hide");
-      document.getElementById("LS-LR").focus();
-      //console.log("Change should have occured");
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }      currentDisplayState = 6;
-      break;
-    case 7:
-      //State 6 - login-state
-      document.getElementById("option-state").classList.toggle("hide");
-      //no focus needed - screen has no direct input
-      if(currentDisplayState != state){//only update to a new state
-        previousDisplayState = currentDisplayState; //update Display State history
-      }      setStatus = 7;
-      break;
+  //messageBanner displays 1 of 3 messages based on a condition
+  //the function checks if condition has been met and sets correct
+  //message
+
+  //check receipt roll
+  //for testing value is set to 5, for real life change to 100
+  if(outOfPaper > 5){
+    return "Check Paper Roll";
   }
 
-  console.log("Main: current display: ", currentDisplayState);
-  console.log("Main: previous display: ", previousDisplayState);
+  //check for cash balance
+  if(pickupNeeded == 1){
+    return "Pickup Needed Soon";
+  }
+
+  //if no notifications, return default message
+  return "Check Under Cart";
+}
+
+function printTotalState(ul, ur, ll, lr){ //
+  console.log("printTotalState called");
+
+  //ul - UPPER LEFT
+  //ur - UPPER RIGHT
+  //ll - LOWER LEFT
+  //lr - LOWER RIGHT
+
+  changeDisplayState(1);
+
+  document.getElementById("TS-UL").value = ul;
+  document.getElementById("TS-UR").value = ur;
+  document.getElementById("TS-LL").value = ll;
+  document.getElementById("TS-LR").value = lr;
 
 }//end function
 
-function card(cardType, cardStatus){
-  var balance = Math.floor(Math.random() * 999) + 1;
-  this.type = cardType;
-  this.status = cardStatus;
-  this.balance = balance;
-}
+function printScanningState(u, ll, lc, lr){ //
+  console.log("printScanningState called");
+
+  //ul - UPPER
+  //ur - Lower Left
+  //ll - LOWER Center
+  //lr - LOWER RIGHT
+
+  changeDisplayState(2);
+
+  document.getElementById("SS-U").value = u;
+  document.getElementById("SS-LL").value = ll;
+  document.getElementById("SS-LC").value = lc;
+  document.getElementById("SS-LR").value = lr;
+
+}//end function
+
+function printScanningKeyinState(u, l){ //
+  console.log("printScanningKeyinState called");
+
+  //u - UPPER
+  //l - LOWER
+
+  changeDisplayState(3);
+
+  document.getElementById("SKS-U").value = u;
+  document.getElementById("SKS-L").value = l;
+
+}//end function
+
+function printScanningQtyState(u, l){ //
+  console.log("printScanningQtyState called");
+
+  //u - UPPER
+  //l - LOWER
+
+  changeDisplayState(4);
+
+  document.getElementById("SQS-U").value = u;
+  document.getElementById("SQS-L").value = l;
+
+}//end function
+
+function printErrorState(u, l){ //
+  console.log("printErrorState called");
+
+  //u - UPPER
+  //l - lower
+
+  changeDisplayState(5);
+
+  document.getElementById("ES-U").value = u;
+  document.getElementById("ES-L").value = l;
+
+}//end function
+
+function printMessageState(u, l){ //
+  console.log("printMessageState called");
+
+  //u - UPPER
+  //l - lower
+
+  //if undefined, set default message
+  if(u === undefined){
+    u = messageBanner(); //check for any notifications
+  }
+
+  if(l === undefined){
+    l = "Ready Scan Item";
+  }
+
+  changeDisplayState(6);
+
+  //print to display
+  document.getElementById("MS-U").value = u;
+  document.getElementById("MS-L").value = l;
+
+}//end function
+
+function printLoginState(u, ll, lr){ //
+  console.log("printLoginState called");
+
+  //ul - UPPER LEFT
+  //ll - LOWER LEFT
+  //lr - LOWER RIGHT
+
+  changeDisplayState(7);
+
+  document.getElementById("LS-U").value = u;
+  document.getElementById("LS-LL").value = ll;
+  document.getElementById("LS-LR").value = lr;
+
+}//end function
+
+function printOptionState(u, l){ //
+  console.log("printOptionState called");
+
+  //u - UPPER
+  //l - LOWER
+
+  changeDisplayState(8);
+
+  document.getElementById("OS-U").value = u;
+  document.getElementById("OS-L").value = l;
+
+}//end function
+
+function printDefaultErrorMessage(){
+  console.log("printDefaultErrorMessage called");
+
+  changeDisplayState(5); //message
+
+  document.getElementById("ES-U").value = "INVALID ENTRY";
+  document.getElementById("ES-L").value = "*** PRESS ** CLEAR ***";
+}//end function
+
+function changeDisplayState(state){
+  console.log("changeDisplayState called");
+
+  //changeDisplayState() is responsible for changing the display set used to
+  //show data to user. There are 8 program states that each have a unique
+  //pattern on screen
+
+  //not to be confused with program state. A user can be looking at a login screen
+  //but hit the wrong button and the program will change to error state. Thus
+  //the Display state would be DS_LOGIN (7), but the program state would be PS_ERROR (6)
+
+  //DISPLAY state only effects where output is going
+  //Program state is used to manage how button presses are managed
+
+  //Display States
+  // DS_TOTAL = 1;
+  // DS_SCANNING = 2;
+  // DS_SCAN_KEYIN = 3;
+  // DS_SCAN_QTY = 4;
+  // DS_ERROR = 5;
+  // DS_MESSAGE = 6;
+  // DS_LOGIN = 7;
+  // DS_OPTION = 8;
+
+
+
+  //hide all states to hide
+  hideState();
+
+  //update current display state
+  if(currentDisplayState != state){//only update to a new state
+    previousDisplayState = currentDisplayState; //update Display State history
+  }
+  currentDisplayState = state;
+
+  //Then based on paramter toggle one state back on
+  switch(state){
+    case 1: //State 1 - total-state
+      document.getElementById("total-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 2: //State 2 - scanning-state
+      document.getElementById("scanning-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 3: //State 3 - scanning-keyin-state
+      document.getElementById("scanning-keyin-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 4: //State 4 - scanning-qty-state
+      document.getElementById("scanning-qty-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 5: //State 5 - error-state
+      document.getElementById("error-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 6: //State 6 - message-state
+      document.getElementById("message-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 7: //State 7 - login-state
+      document.getElementById("login-state").classList.toggle("hide");
+      break;
+    //**********************************
+    case 8: //State 8 - Option-state
+      document.getElementById("option-state").classList.toggle("hide");
+      break;
+  }
+
+  //print results to console
+  console.log("Current display State: ", currentDisplayState);
+  console.log("Previous display State: ", previousDisplayState);
+
+}//end function
+
+function changeProgramState(state){
+  console.log("changeProgramState called");
+
+  //State 1: login
+  //State 2: scanning
+  //State 3: total
+  //State 4: payment
+  //state 5: message
+  //State 6: error
+
+  if(state > 0 && state < 8){
+    if(previousProgramState != currentProgramState){
+      previousProgramState = currentProgramState; //update history
+      currentProgramState = state;
+    }
+  } else {
+    console.log("ERROR: program state not valid: ", state);
+  }
+
+  console.log("Current program State: ", currentProgramState);
+  console.log("Previous program State: ", previousProgramState);
+
+}//end function
+
+function card(userSetType, userSetStatus, userSetBalance){
+  console.log("card called");
+
+  //card is intended to randomly create a new card based on a set criteria
+  //Giftcard type has limitations of a max balance of $200, and unless manually set, it cannot be any status but active
+  //variables do not have to be set, as default variables will create a random card
+  //The function wallet creates six random cards, and one Admin card with a huge balance -- meant to complete any transaction in case all 6 cards don't have sufficent balances
+  //cardStatus is 10 times more likely to generate as "Active" to simulate real world conditions. other types are less likely to occur
+
+
+  //status options
+  // -- active
+  // -- inactive
+  // -- stolen
+  // -- fraud (this is used by bank to mark unusual card activity, not the same as stolen)
+  // -- Expired
+
+
+  //type options
+  // -- EBT
+  // -- Debit
+  // -- Credit
+  // -- Giftcard -- includes limitations to randomizer
+
+
+  //create variables
+  //arrays are used list options and randomize options - only used internally
+  this.cardTypes = ["Debit", "Credit", "EBT", "Giftcard"];
+  this.cardStatus = ["active", "active", "inactive", "active",
+    "active", "stolen", "active", "active", "fraud", "active", "active",
+    "expired", "active", "active"]; // active is listed as an option far more to increase likelyhood of randomly being generated
+
+  //if no value set manually
+  if(userSetType === undefined){
+    this.type = this.cardTypes[Math.floor(Math.random() * this.cardTypes.length)]; //randomly select card type
+  } else {
+    //else set type manually
+    this.type = userSetType;
+  }
+
+  //if no value set manually
+  if(userSetStatus === undefined){
+    //if no user input, then check if cardtype is "giftcard"
+    if(this.type === "Giftcard"){
+      //if giftcard, set status to "active"
+      this.status = "active";
+    } else {
+      //else set status randomly
+      this.status = this.cardStatus[Math.floor(Math.random() * this.cardStatus.length)]; //randomly select card status
+    }
+  } else {
+    //else set status manually
+    this.status = userSetStatus;
+  }
+
+  //if no balance set manually
+  if(userSetBalance === undefined){
+    //check for cardtype "giftcard"
+    if(this.type === "Giftcard"){
+      //gift cards are limited to $200 max balance
+      this.balance = (Math.random() * (40.00 - 200.00) + 200.00).toFixed(2);
+    } else {
+      //if not a gift card, balance max is $600
+      this.balance = (Math.random() * (40.00 - 600.00) + 600.00).toFixed(2);
+    }
+  } else {
+    //else set balance manually
+    this.balance = userSetBalance.toFixed(2);
+  }
+
+}//end function
+
+function initializeWallet(){
+  console.log("initializeWallet called");
+
+  //this function creates an array of unique payment methods including various cards and cash
+  //these cards are objects made by card() -- see documentation there for more information on card()
+  //one card is manually set to always allow a user to complete a transation
+  //this function does not print out results to frontend
+
+
+  //the function card() is used to create new random card objects
+  myPaymentCard = [
+    new card(),
+    new card(),
+    new card(),
+    new card(),
+    new card(),
+    new card(),
+    new card("Admin Card", "active", 100000.00),
+    new card("Cash", "active") //balance is generated randomly in card function
+  ];
+
+}//end function
+
+function printWallet(arrayIn){
+  console.log("printWallet called");
+
+  //this function prints current wallet to front end
+
+  let output = "";
+  output += "<h3>Wallet</h3>";
+  output += "<table class='wallet-list-1'>";
+  output += "<tbody id='mywallet'></tbody>";
+
+  //run loop
+  //8 is hardcoded since there are only 8 items in wallet
+  for(let i = 0; i < 8; i++){
+
+    //set color
+    let cardStatus = arrayIn[i].status;
+    let color = "";
+
+    //determine correct color
+    switch (cardStatus) {
+      case "active":
+        color = "green";
+        break;
+      case "inactive":
+        color = "blue";
+        break;
+      case "fraud":
+        color = "red";
+        break;
+      case "stolen":
+        color = "red";
+        break;
+      case "expired":
+        color = "blue";
+        break;
+      default:
+        console.log("ERROR: userSetStatus found", cardStatus);
+        color = "green";
+    }//end switch
+
+    //print row for card
+    output += "<tr>";
+    output += "<td>" + arrayIn[i].type + " <span style='color:" + color + "; font-size:8pt;'>" + arrayIn[i].status.toUpperCase() + "</span></td>";
+    output += "<td>Bal: $" + arrayIn[i].balance + "</td>";
+    output += "<td><button class='use-btn' type='button'>Pay</button></td>";
+    output += "</tr>";
+
+  }//end for loop
+
+  output += "</table>";
+
+  //print output
+  document.getElementById("wallet").innerHTML = output;
+
+}//end function
+
+function randomWeight(){
+  console.log("randomWeight called");
+
+  // **DOCUMENTATION**
+  //this function generates a random weight between 0lbs and 15lbs
+
+  //set variable
+  let myWeight = (Math.random() * (0.00 - 5.00) + 5.00).toFixed(2);
+
+  //print to display
+  printScaleToDisplay(myWeight);
+
+  //return value
+  return myWeight;
+}//end function
+
+function printWeightToDisplay(weightIn){
+  console.log("printWeightToDisplay called");
+
+  // **DOCUMENTATION**
+  //this function outputs weigbht to frontend user screen
+
+  document.getElementById("scale-display").value = weightIn + " lbs";
+
+}//end function
+
+function randomScanItem(){
+  console.log("randomScanItem called");
+  //this function includes an eventListener for space bar press
+  //when space bar is pressed, it will simulute scanning a random item
+
+
+
+}//end function
 
 function login(part, number){
   console.log("login called");
@@ -239,20 +636,24 @@ function login(part, number){
   //part 10 - check for PIN match
   //part 11 - clear PIN input
 
+
   //create optional parameters
   if(part === undefined){
     //this should only be used by call from MAIN script
     part = 0;
     idPass = 0;
   }
+
   if(number === undefined){
     number = 0;
   }
 
   if(loggedIn == 0){
     switch (part) {
-      case 0: //called by MAIN -- default paramter value
-        //assuming called by Main, start login script
+      case 0: //default call
+        //update program state
+        changeProgramState(PS_LOGIN);
+        changeDisplayState(DS_LOGIN);
         login(4);
         break;
     //*****************************************************
@@ -291,11 +692,11 @@ function login(part, number){
         }
     //*****************************************************
       case 4: //PRINT ID display
-          //output login screen
-          changeState(6); //login-screen
-          document.getElementById("LS-U").value = "Cashier: " + user.name;
-          document.getElementById("LS-LL").value = "Login:";
-          document.getElementById("LS-LR").value = "---";
+        xin1 = "Cashier: " + user.name;
+        xin2 = "Login: ";
+        xin3 = "---";
+
+        printLoginState(xin1, xin2, xin3);
         break;
     //*****************************************************
       case 5: //PRINT user input for ID
@@ -313,9 +714,7 @@ function login(part, number){
           document.getElementById("LS-LR").value = xinMod;
         } else { //no hypen found
           console.log("Input too long");
-          changeState(5);
-          document.getElementById("ES-U").value = "Input Too Long";
-          document.getElementById("ES-L").value = "Press Clear"
+          printErrorState("Input Too Long", "Press Clear");
         }
         break;
     //*****************************************************
@@ -335,9 +734,7 @@ function login(part, number){
         } else {
           console.log("ID wrong");
           //Print error message
-          changeState(5);
-          document.getElementById("ES-U").value = "ID Incorrect";
-          document.getElementById("ES-L").value = "Press Clear";
+          printErrorState("ID Incorrect", "Press Clear");
         }
         break;
     //*****************************************************
@@ -351,10 +748,11 @@ function login(part, number){
       case 8: //print PIN display
 
         //initialize PIN display
-        changeState(6);
-        document.getElementById("LS-U").value = "Cashier: " + user.name;
-        document.getElementById("LS-LL").value = "PIN:";
-        document.getElementById("LS-LR").value = "----";
+        xin1 = "Cashier: " + user.name;
+        xin2 = "PIN: ";
+        xin3 = "----";
+
+        printLoginState(xin1, xin2, xin3);
         break;
     //*****************************************************
       case 9: //print user input for PIN
@@ -372,9 +770,7 @@ function login(part, number){
           document.getElementById("LS-LR").value = xinMod;
         } else { //no hypen found
           console.log("Input too long");
-          changeState(5);
-          document.getElementById("ES-U").value = "Input Too Long";
-          document.getElementById("ES-L").value = "Press Clear"
+          printErrorState("Input Too Long", "Press Clear");
         }
           break;
     //*****************************************************
@@ -393,9 +789,7 @@ function login(part, number){
         } else {
           console.log("PIN wrong");
           idPass = 0; //reset to ID check
-          changeState(5);
-          document.getElementById("ES-U").value = "PIN Incorrect";
-          document.getElementById("ES-L").value = "Press Clear"
+          printErrorState("PIN Incorrect", "Press Clear");
         }
         break;
     //*****************************************************
@@ -414,6 +808,16 @@ function login(part, number){
     console.log("login called, but user already logged in");
   }
 }//end function
+
+function logout(){
+  console.log("logout called");
+
+  //function logs out a user by resetting loggedIn variable
+  //autoSetState() will then redirect user to login function
+
+  loggedIn = 0; //log out
+  autoSetState(); //reset state
+}
 
 function addMoney(xin, yin){
   console.log("addMoney called");
@@ -436,122 +840,857 @@ function addToSubTotal(xin){
   }
 }//end function
 
-function scan(part, item){
-  console.log("scan called");
+// function uniquePurchase(itemIndex, itemQuantity, itemWeight, itemVoided){
+//   this.index = itemIndex;
+//   this.quantity = itemQuantity;
+//   this.weight = itemWeight;
+//   this.void = itemVoided; //true = void, false = not void
+// }//end function
 
-  //Function SCAN() handles all elements regarding scanning an item
-  //Paramter "part" will jump to the part of the function relevent at the time of the call
-  //Paramter "item" will pass in the item being scanned
+function buildCartArray(cartId, itemIndex, itemQuantity, itemWeight, itemVoided){
+  console.log("buildCartArray called");
+  //item is passed here from searchFood(), item is added to the cart array,
+  //then updatePrinter() is called to pass on item
+  //then scan(1) is called to fillout the display
 
+  //each item scanned must have the following info:
+  //item index
+  //item quantity -- default value is 1
+  //item weight -- 0 equals no weighted item
+  //item void -- true equals void, false equals not voided
 
-  // -- DEFAULT --
-  //Part 0 - called from login() - no parameters needed
+  //build array
+  myCart[myCartIndex] = {
+    cartId: cartId,
+    index: itemIndex,
+    quantity: itemQuantity,
+    weight: itemWeight,
+    void: itemVoided
+  };
 
-  // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
-  //Part 1 - called by [0-9] eventListener
-  //Part 2 - called by ENTER eventListener
-  //Part 3 - called by CLEAR eventListener
+  //increment counter
+  myCartIndex++;
 
-  // -- Keyin SCRIPTS -- output user input, checks input against user profile
-  //part 4 - PRINT ID display
-  //part 5 - print user input for ID
-  //part 6 - check for ID match
-  //part 7 - clear ID input
-
-  // -- PIN SCRIPTS --
-  //part 8 - PRINT PIN display
-  //part 9 - print user input for PIN
-  //part 10 - check for PIN match
-  //part 11 - clear PIN input
-
-
-  switch (part) {
-    case 0: //default display
-      changeState(5);
-      document.getElementById("ES-U").value = "Check Under Cart";
-      document.getElementById("ES-L").value = "Begin Scanning";
-      break;
-    case 1: //sort by keyin
-      if(triggerKeyIn == 0){ //0 = change state
-        scan(2, input);
-      } else {
-        scan(3, input);
-      }
-      break;
-    case 2: //print keyin screen
-      changeState(3);
-      document.getElementById("SKS-U").value = data[lastItem].Description;
-      document.getElementById("SKS-L").value = "";
-      break;
-    case 3: //print user input for keyin screen
-      xin = document.getElementById("SKS-L").value;
-      xin += item;
-      document.getElementById("SKS-L").value = xin;
-      break;
-    case 4: //main
-      changeState(2);
-      index = searchFood(item);
-
-      //set lastItem
-      if(lastItem != index){ //if the last item is NOT the same as the current item....
-        lastItem = index;
-        itemCount = 1; //setting itemCount equal to 1 is reset
-      } else {
-        //if lastItem == index
-        //**this means that index is repeating, and a count is needed
-        //**therefor increment counter
-        itemCount++;
-      }
-
-      //check for weight info here...
-
-      //check for id here...
-
-      //Check if one sale, then add Full/Sale price to subtotal
-      if(data[index].Sale_Active == 1){ //1 = true -- true = on sale
-        addToSubTotal(data[index].Sale_Price);
-        thePrice = data[index].Sale_Price;
-      } else {
-        addToSubTotal(data[index].Full_Price);
-        thePrice = data[index].Full_Price;
-      }
+  //update printer
+  printerMain(myCart);
 
 
-      document.getElementById("SS-U").value = data[index].Description;
-      document.getElementById("SS-LL").value = thePrice;
-      document.getElementById("SS-LC").value = itemCount;
-      document.getElementById("SS-LR").value = subTotal;
-      break;
+  //notes to self for array syntax....
+  // myCartArray = [
+  //   {index:1, quantity:1, weight:1.65, void:false},
+  //   {index:2, quantity:1, weight:0, void:false},
+  //   {index:3, quantity:8, weight:0, void:false},
+  //   {index:4, quantity:1, weight:0, void:true}
+  // ];
 
-    case 5: //print results to receipt
-      break;
-    default:
-      console.log("default of scan() switch called");
-      break;
-  }//end switch
+  // myCartArray2 = [
+  //   new uniquePurchase(1, 1, 1.65, false),
+  //   new uniquePurchase(2, 1, 0, false)
+  // ];
 
 }//end function
 
-function logout(){
-  console.log("logout called");
-  //funciton handles all elements required to logout
-  if(userStatus == 1) //1 = logged in
-  {
+function printerMain(arrayIn){
+  console.log("printerMain called");
+  console.log(arrayIn);
 
+  //printerMain handles how items are printed to reciept
+  //based on what item is in the array, it will choose the correct
+  //reciept printing function and generate correct output
+
+  //generate header
+  output = "";
+  output += "<p class='top-print'>ALDI<br/>";
+  output += "Store #" + store.number + "<br/>";
+  output += store.address + "<br/>";
+  output += store.website + "<br/>";
+  output += "Your cashier today was " + user.name;
+  output += "</p>";
+  output += "<table class='shopping-items'>";
+
+  //find items in current cart from array
+  arrayLen = arrayIn.length;
+  for(i = 0; i < arrayLen; i++){
+    console.log("loop1: ",i);
+    if(arrayIn[i].cartId == currentCartId){
+
+      //check if item voided
+      //CHECK FOR VOID FIRST!
+      //cancelNameName variables are used to prevent following
+      //if statements from printing results after printing VOID line
+      if(arrayIn[i].void == true){
+        console.log("item was voided: ", arrayIn[i].voided);
+        cancelStandardOut = 1;
+        cancelWeightedOut = 1;
+        cancelQuantityOut = 1;
+        output += updatePrinterVoidOutput(arrayIn[i].index, arrayIn[i].quantity, arrayIn[i].weight);
+      }
+      //check for quantity
+      if(arrayIn[i].quantity > 1 && cancelQuantityOut == 0){
+        console.log("quantity found: ", arrayIn[i].quantity);
+        cancelStandardOut = 1;
+        output += updatePrinterQuantityOutput2(arrayIn[i].index, arrayIn[i].quantity);
+      }
+      //check for weight
+      if(arrayIn[i].weight > 0 && cancelWeightedOut == 0){
+        console.log("weight found: ", arrayIn[i].weight);
+        cancelStandardOut = 1;
+        output += updatePrinterWeightOutput2(arrayIn[i].index, arrayIn[i].weight);
+      }
+
+      //if no other item found, run standard output
+      if(cancelStandardOut == 0){
+        console.log("standard output for index: ", i);
+        output += updatePrinterStandardOutput2(arrayIn[i].index);
+      }
+
+      //reset cancelStandardOut
+      cancelStandardOut = 0;
+      cancelQuantityOut = 0;
+      cancelWeightedOut = 0;
+
+    } else {
+      console.log("ERROR: currentCartId not found");
+    }
   }
-}//end fucntion
+
+  document.getElementById("printer").innerHTML = output;
+
+}//end function
+
+function updatePrinterStandardOutput(item){
+  console.log("updatePrinterStandardItem() called");
+  //this function prints according to the "standard" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+
+
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //generate output
+  output = "";
+  output += "<table class='standard'>";
+  output += "<tr class='standard'>";
+  output += "<td class='row-1'>" + data[item].Description + "</td>";
+  output += "<td width='18%' class='row-2'></td>";
+  output += "<td width='18%' class='row-3'>" + price + "</td>";
+  output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+  output += "</tr>";
+
+  //load up existing content
+  currentReceipt = document.getElementById("printer").innerHTML;
+
+  //add new generated output
+  newReceipt = currentReceipt + output;
+
+  //update document
+  document.getElementById("printer").innerHTML = newReceipt;
+}//end function
+
+function updatePrinterStandardOutput2(item){
+  console.log("updatePrinterStandardOutput2() called");
+  //this function prints according to the "standard" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //format numbers for output
+  price = (price * 100) / 100; //convert to money format
+  price = Math.round(price * 100) / 100; //round to decimal
+
+  //generate output
+  let output = "";
+  //output2 += "<table class='standard'>";
+  output += "<tr class='standard'>";
+  output += "<td class='row-1'>" + data[item].Description + "</td>";
+  output += "<td width='18%' class='row-2'></td>";
+  output += "<td width='18%' class='row-3'>" + price + "</td>";
+  output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+  output += "</tr>";
+
+  return output;
+}//end function
+
+function updatePrinterQuantityOutput(item, quantity){
+  console.log("updatePrinterQuantityOutput called");
+
+  //this function prints according to the "Quantity" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+  //variable "quantity" is the count of items
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //set variable
+  total = price;
+
+  // if(quantity > 1){
+  //   for(i = 1; i < quantity; i++){
+  //     total = addMoney(total, price);
+  //   }
+  // }
+
+  total = price * quantity;
+  total = (total * 100) / 100;
+
+  //generate output
+  output = "";
+  output = "<table class='standard'>";
+  output += "<tr class='standard'>";
+  output += "<td class='row-1'>" + data[item].Description + "</td>";
+  output += "<td width='18%' class='row-2'></td>";
+  output += "<td width='18%' class='row-3'>" + total + "</td>";
+  output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+  output += "</tr>";
+  output += "<tr class='standard quantity'>";
+  output += "<td class='row-1'>" + quantity + " @</td>";
+  output += "<td width='18%' class='row-2'>" + price + "</td>";
+  output += "<td width='18%' class='row-3'></td>";
+  output += "<td width='9%' class='row-4'></td>";
+
+  //load up existing content
+  currentReceipt = document.getElementById("printer").innerHTML;
+
+  //add new generated output
+  newReceipt = currentReceipt + output;
+
+  //update document
+  document.getElementById("printer").innerHTML = newReceipt;
+}//end function
+
+function updatePrinterQuantityOutput2(item, quantity){
+  console.log("updatePrinterQuantityOutput2 called");
+
+  //this function prints according to the "Quantity" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+  //variable "quantity" is the count of items
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //set variable
+  let total = price;
+
+  total = price * quantity;
+  total = (total * 100) / 100; //convert to money format
+  total = Math.round(total * 100) / 100; //round to decimal
+
+  //generate output
+  let output = "";
+  output += "<tr class='standard'>";
+  output += "<td class='row-1'>" + data[item].Description + "</td>";
+  output += "<td width='18%' class='row-2'></td>";
+  output += "<td width='18%' class='row-3'>" + total + "</td>";
+  output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+  output += "</tr>";
+  output += "<tr class='standard quantity'>";
+  output += "<td class='row-1'>" + quantity + " @</td>";
+  output += "<td width='18%' class='row-2'>" + price + "</td>";
+  output += "<td width='18%' class='row-3'></td>";
+  output += "<td width='9%' class='row-4'></td>";
+
+  //export content
+  return output;
+
+}//end function
+
+function updatePrinterWeightOutput(item, weight){
+  console.log("updatePrinterWeightOutput called");
+  //this function prints according to the "Quantity" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+  //variable "weight" is the weight of the item
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //set variable
+
+
+  //determine price
+  total = price * weight;
+  total = Math.round(total * 100) / 100;
+
+  //generate output
+  output = "";
+  output += "<table class='standard'>";
+  output += "<tr class='standard'>";
+  output += "<td class='row-1'>" + data[item].Description + " LRW</td>";
+  output += "<td width='18%' class='row-2'></td>";
+  output += "<td width='18%' class='row-3'>" + total + "</td>";
+  output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+  output += "</tr>";
+  output += "<tr class='standard weight'>";
+  output += "<td class='row-1'>" + weight + " lbs x</td>";
+  output += "<td width='18%' class='row-2'>" + price + "/lb</td>";
+  output += "<td width='18%' class='row-3'></td>";
+  output += "<td width='9%' class='row-4'></td>";
+
+  //load up existing content
+  currentReceipt = document.getElementById("printer").innerHTML;
+
+  //add new generated output
+  newReceipt = currentReceipt + output;
+
+  //update document
+  document.getElementById("printer").innerHTML = newReceipt;
+}//end funciton
+
+function updatePrinterWeightOutput2(item, weight){
+  console.log("updatePrinterWeightOutput2 called");
+  //this function prints according to the "Quantity" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+  //variable "weight" is the weight of the item
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //determine price
+  let total = price * weight;
+  total = (total * 100) / 100; //convert to money format
+  total = Math.round(total * 100) / 100; //round to decimal
+  weight = Math.round(weight * 100) / 100; //round to decimal
+
+  //generate output
+  let output = "";
+  output += "<tr class='standard'>";
+  output += "<td class='row-1'>" + data[item].Description + " LRW</td>";
+  output += "<td width='18%' class='row-2'></td>";
+  output += "<td width='18%' class='row-3'>" + total + "</td>";
+  output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+  output += "</tr>";
+  output += "<tr class='standard weight'>";
+  output += "<td class='row-1'>" + weight + " lbs x</td>";
+  output += "<td width='18%' class='row-2'>" + price + "/lb</td>";
+  output += "<td width='18%' class='row-3'></td>";
+  output += "<td width='9%' class='row-4'></td>";
+
+  //return output
+  return output;
+
+}//end function
+
+function updatePrinterVoidOutput(item, quantity, weight){
+  console.log("updatePrinterVoidOutput called");
+  //this function prints according to the "Quantity" format to the receipt
+  //variable "item" must be a data item index, not a UPC, NLU, or Smart code
+  //variable "weight" is the weight of the item
+
+  //Determine price
+  if(data[item].Sale_Active == 1){
+    price = data[item].Sale_Price;
+  } else {
+    price = data[item].Full_Price;
+  }
+
+  //set variables
+  let cancelStandardOut = 0; //local variable only -- not the same as the global
+  let output = "";
+
+  //check for quantity
+  if(quantity > 1){
+    //prevent standard output
+    cancelStandardOut = 1;
+
+    //set variable
+    total = price;
+
+    if(quantity > 1){
+      for(let i = 1; i < quantity; i++){
+        total = addMoney(total, price);
+      }
+    }
+
+    //generate output
+    output += "<tr class='standard'>";
+    output += "<td class='row-1'>" + data[item].Description + "</td>";
+    output += "<td width='18%' class='row-2'>VOID</td>";
+    output += "<td width='18%' class='row-3'>-" + total + "</td>";
+    output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+    output += "</tr>";
+    output += "<tr class='standard quantity'>";
+    output += "<td class='row-1'>-" + quantity + " @</td>";
+    output += "<td width='18%' class='row-2'>" + price + "</td>";
+    output += "<td width='18%' class='row-3'></td>";
+    output += "<td width='9%' class='row-4'></td>";
+  }
+
+  //check for weight
+  if(weight > 0){
+    //prevent standard output
+    cancelStandardOut = 1;
+
+    //determine price based on weight
+    total = price * weight;
+    total = Math.round(total * 100) / 100;
+
+    //generate output
+    output += "<tr class='standard'>";
+    output += "<td class='row-1'>" + data[item].Description + " LRW</td>";
+    output += "<td width='18%' class='row-2'>VOID</td>";
+    output += "<td width='18%' class='row-3'>-" + total + "</td>";
+    output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+    output += "</tr>";
+    output += "<tr class='standard weight'>";
+    output += "<td class='row-1'>" + weight + " lbs x</td>";
+    output += "<td width='18%' class='row-2'>" + price + "/lb</td>";
+    output += "<td width='18%' class='row-3'></td>";
+    output += "<td width='9%' class='row-4'></td>";
+  }
+
+  //standard output
+  if(cancelStandardOut == 0){
+
+    //generate output
+    output += "<tr class='standard'>";
+    output += "<td class='row-1'>" + data[item].Description + "</td>";
+    output += "<td width='18%' class='row-2'>VOID</td>";
+    output += "<td width='18%' class='row-3'>-" + price + "</td>";
+    output += "<td width='9%' class='row-4'>" + data[item].Type + "</td>";
+    output += "</tr>";
+  }
+
+  //return output
+  return output;
+
+}//end function
+
+function updatePrinterPayment(){
+  console.log("updatePrinterPayment called");
+
+  taxRateB = 5.300;
+  taxRateC = 2.500;
+
+}//end function
+
+userNumber = undefined;
+
+function buildScanNumber(number){
+  console.log("buildNumber called");
+
+  //buildNumber is used to build the number as user enters a number
+
+
+  //update variable
+  if(userNumber === undefined){
+    userNumber = number;
+  } else {
+    //assume userNumber is part way through build
+    userNumber += number; //add number on
+  }
+
+  console.log("userNumber: ", userNumber);
+
+  //Print number to display
+  switch (currentProgramState) {
+    case 1: //login
+
+      break;
+    case 2: //scanning
+      printScanningKeyinState(data[lastItem].Description, userNumber);
+      break;
+    case 3: //total
+
+      break;
+    case 4: //payment
+
+      break;
+    case 5: //message
+      //Message is unique, unlikely this will be used here
+      break;
+    case 6: //error
+      //will never appear here
+      break;
+    case 7: //new cart
+      let notification = messageBanner();
+      printScanningKeyinState(notification, userNumber);
+      break;
+    default: //debugging message
+      console.log("currentDisplayState error - unknown");
+      break;
+
+  }//end switch
+
+
+}//end function
+
+newCart = 0; //if nothing in cart
+newItemQty = 0; //If qty is used
+cartId = 1; //start
+itemCount = 1; //counts sequential items
+lastItem = undefined; //used to count sequential items, compares current item to last item
+thePrice = 0; //price of item
+subTotal = 0; //running subtotal of order
+checkID = 0; //change to 1 if an item requires ID verification
+COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
+scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
+
+function scan(part, item){
+  console.log("scan() called");
+
+  if(part === undefined){
+    //do nothing
+  } else {
+    //if part is defined, run switch
+    switch (part) {
+      case 0: //do nothing
+        break;
+      case 1: //called by [0-9] Event listener
+        //used to build number
+        buildScanNumber(item);
+        return;
+      case 2: // called by CLEAR
+        //clear build number then reset state
+        userNumber = undefined;
+        autoSetState();
+        return;
+      //*******************************************************
+      case 3: // called by ENTER
+
+        //check if user wants to duplicate last item
+        if(userNumber === undefined){
+          //duplicate lastItem
+          if(itemCount < COPY_LIMIT || scannedAgain == 1){ //limit to 5
+            if(lastItem !== undefined){ //double check that number is valid
+              userNumber = data[lastItem].UPC;
+            } else {
+              //debugging
+              console.log("ERROR: could not duplicate - number not recognized");
+              return;
+            }
+          } else {
+            //cannot exceed 5 copies
+            changeProgramState(6); //error
+            printErrorState("Limit to 5", "*** PRESS ** CLEAR ***");
+            return;
+          }
+        } else {
+          //user has defined a number
+          //we do not know if the number is a NLU, Smart code, or UPC
+          //we need to run search to make an index comparison with lastItem
+          //run search for food item based on userNumber
+          foodSearchResult = searchFood(userNumber);
+
+          //if itemCount is greater than 1 AND userNumber result was the same as lastItem,
+          //then user intends more than 5 sequencial copies, do not reset itemCount
+          if(itemCount > 1 && foodSearchResult === lastItem){
+            scannedAgain = 1;
+          } else {
+            //new item scanned - reset count
+            itemCount = 1;
+            scannedAgain = 0;
+          }
+        }
+
+        //run search for food item based on userNumber
+        //let foodSearchResult = searchFood(userNumber);
+
+        //confirm search results
+        //check for ITEM NOT FOUND
+        if(foodSearchResult == 0){ //return value defined in searchFood -- 0 = not found
+          changeProgramState(6); //error
+          printErrorState("Item Not Found", "*** PRESS ** CLEAR ***");
+          break;
+        }
+
+        //check for NUMBER ENTERED WRONG
+        if(foodSearchResult == -1){ //return value defined in searchFood -- -1 = number not proper format
+          changeProgramState(6); //error
+          printErrorState("Invalid Item Number", "*** PRESS ** CLEAR ***");
+          break;
+        }
+
+        //set lastItem
+        if(lastItem != foodSearchResult){ //if the last item is NOT the same as the current item....
+          lastItem = foodSearchResult;
+          itemCount = 1; //setting itemCount equal to 1 is reset
+        } else {
+          //if lastItem == index
+          //**this means that index is repeating, and a count is needed
+          //**therefor increment counter
+          itemCount++;
+        }
+
+        //check if weighted
+        if(data[foodSearchResult].is_weighed == 1){
+          myWeight = randomWeight();
+        } else {
+          myWeight = 0;
+          printWeightToDisplay(0.00);
+        }
+
+        //check if age restriction
+        if(data[foodSearchResult].ID_Verification == 1){
+          checkID = 1;
+        }
+
+
+        //Check if on sale, then add Full/Sale price to subtotal
+        if(data[foodSearchResult].Sale_Active == 1){ //1 = true -- true = on sale
+          addToSubTotal(data[foodSearchResult].Sale_Price);
+          thePrice = data[foodSearchResult].Sale_Price;
+        } else {
+          addToSubTotal(data[foodSearchResult].Full_Price);
+          thePrice = data[foodSearchResult].Full_Price;
+        }
+
+
+        //foodItem -- data[index].Description
+        //thePrice -- the price of the item
+        //itemCount -- count of sequencial same items
+        //subTotal -- running subtotal of price
+
+
+        //add food to shopping cart
+        buildCartArray(cartId, foodSearchResult, newItemQty, myWeight, false);
+
+        //update display
+        printScanningState(data[foodSearchResult].Description, thePrice, itemCount, subTotal);
+
+        //update/reset tracking variables
+        userNumber = undefined;
+        foodSearchResult == undefined;
+        newCart = 1; //no longer a new cart
+        changeProgramState(2); //scanning state
+        autoSetState(); //reset state
+
+
+        break;
+      //*******************************************************
+      default:
+        console.log("ERROR: default switch triggered;");
+    }//end switch
+  }
+
+  //
+  //
+  // if(item === undefined){
+  //   item = 0;
+  // }
+
+  //if new cart, change program state
+  if(newCart == 0){
+    console.log("UPDATE: newcart triggered");
+    changeProgramState(7);
+    //only notify user when starting newCart
+    let notification = messageBanner(); //check for notifications
+    printErrorState(notification, "Ready Scan Item");
+    return;
+  } else {
+    console.log("UPDATE: current cart triggered");
+    changeProgramState(2); //set to scanning state
+    printScanningState(data[lastItem].Description, thePrice, itemCount, subTotal);
+  }
+
+  //assuming NOT a new cart...
+
+  // switch (part) {
+  //   case 0: //default display
+  //     changeProgramState(2);
+  //     printErrorState("Check Under Cart", "Ready Scan Item");
+  //     break;
+  //   //*****************************************************
+  //   case 1: //called by [0-9] eventListener
+  //
+  //     if(firstItem == 0){ //nothing has been scanned yet
+  //         scan(5 , item);
+  //         break;
+  //     }
+  //
+  //     if(keyinStateChange == 0){ //user has pressed button first time
+  //       scan(4, item);
+  //     } else { //user is adding additional button clicks
+  //       scan(6, item);
+  //     }
+  //     break;
+  //   //*****************************************************
+  //   case 2: //called by ENTER eventListener
+  //
+  //     //In scan mode, ENTER can do two things
+  //     //If an item is being manually keyed in, it activates search function
+  //     //If ENTER is pressed by itself, it adds the last added item again to the order
+  //     //If ENTER is pressed with no user input AND no previous scanned item, print error
+  //
+  //     if(keyinStateChange == 0){ //if user has NOT keyed in number
+  //         if(firstItem == 0){ //if nothing has been scanned yet...
+  //           changeProgramState(6); //error state
+  //           printDefaultErrorMessage();
+  //         } else { //duplicate last item
+  //           scan(7);
+  //         }
+  //     } else {
+  //       scan(7); //submit number for search
+  //     }
+  //     break;
+  //   //*****************************************************
+  //   case 3: //called by CLEAR eventListener
+  //     if(keyinStateChange == 0){//if user has NOT keyed in number
+  //       //do nothing on CLEAR
+  //       //eventually activate error beep sound
+  //     } else {
+  //         if(lastItem == 0){ //if nothing has been scanned
+  //             scan(0); //return to first screen
+  //         } else {//if something has already been scanned...
+  //             //show last scanned item
+  //             document.getElementById("SKS-L").value = data[lastItem].UPC; // resets the value after a user input is cleared --- used to keep the lastItem history relavant
+  //             //there is a bug on 747 -- the value entered is not equal to what lastItem should be
+  //             //lastItem is the array index, while last searched value could be anything
+  //             printScanningState(data[lastItem].Description, thePrice, itemCount, subTotal);
+  //         }
+  //     }
+  //     break;
+  //   //*****************************************************
+  //   case 4: //print keyin screen
+  //     printScanningKeyinState(data[lastItem].Description, item);
+  //     keyinStateChange = 1; //used by sorting
+  //     break;
+  //   //*****************************************************
+  //   case 5: //print keyin display -- first item in transaction
+  //     printScanningKeyinState("Check Under Cart", item);
+  //     keyinStateChange = 1; //used by sorting
+  //     firstItem = 1; //this prevents CASE 5 from being called again during transaciton
+  //     break;
+  //   //*****************************************************
+  //   case 6: //print user input for keyin screen
+  //     xin = document.getElementById("SKS-L").value;
+  //     xin += item;
+  //     document.getElementById("SKS-L").value = xin;
+  //     break;
+  //   //*****************************************************
+  //   case 7: //submit number - search for results
+  //     item = document.getElementById("SKS-L").value;
+  //     index = searchFood(item);
+  //
+  //     //check for ITEM NOT FOUND
+  //     if(index == 0){ //return value defined in searchFood -- 0 = not found
+  //       changeProgramState(6); //error
+  //       printErrorState("Item Not Found", "*** PRESS ** CLEAR ***");
+  //       keyinStateChange = 0; //reset
+  //       break;
+  //     }
+  //
+  //     //check for NUMBER ENTERED WRONG
+  //     if(index == -1){ //return value defined in searchFood -- -1 = number not proper format
+  //       changeProgramState(6); //error
+  //       printErrorState("Invalid Item Number", "*** PRESS ** CLEAR ***");
+  //       keyinStateChange = 0; //reset
+  //       break;
+  //     }
+  //
+  //     //set lastItem
+  //     if(lastItem != index){ //if the last item is NOT the same as the current item....
+  //       lastItem = index;
+  //       itemCount = 1; //setting itemCount equal to 1 is reset
+  //     } else {
+  //       //if lastItem == index
+  //       //**this means that index is repeating, and a count is needed
+  //       //**therefor increment counter
+  //       itemCount++;
+  //     }
+  //
+  //     //check for weight info here...
+  //
+  //     //check for id here...
+  //
+  //     //needsId is the variable
+  //
+  //     //Check if on sale, then add Full/Sale price to subtotal
+  //     if(data[index].Sale_Active == 1){ //1 = true -- true = on sale
+  //       addToSubTotal(data[index].Sale_Price);
+  //       thePrice = data[index].Sale_Price;
+  //     } else {
+  //       addToSubTotal(data[index].Full_Price);
+  //       thePrice = data[index].Full_Price;
+  //     }
+  //
+  //
+  //     //data[index].Description
+  //     //thePrice -- the price of the item
+  //     //itemCount -- count of sequencial same items
+  //     //subTotal -- running subtotal of price
+  //
+  //     printScanningState(data[index].Description, thePrice, itemCount, subTotal);
+  //     keyinStateChange = 0; //reset
+  //     if(firstItem == 0){ //if not yet set, set firstItem
+  //       firstItem = 1;
+  //     }
+  //
+  //     break;
+  //   //*****************************************************
+  //   case 8: //ENTER Duplicates last scanned item
+  //
+  //
+  //     break;
+  //   default:
+  //     console.log("default of scan() switch called");
+  //     break;
+  // }//end switch
+
+
+
+}//end function
+
+function autoSetState(){
+  console.log("autoSetState() called");
+
+  //this function is used to find where you are in the program and return you to
+  //that state. It was developed as a comeback from CLEAR button push, but I think
+  //it will have several uses.
+
+  //check for login
+  if(loggedIn == 0){
+    console.log("autoSet to Login");
+    login();
+    return;
+  }
+
+  //check for checkout status
+
+
+  //scan will be the default value if all other IF tests pass
+  console.log("autoSet to Scan");
+  scan();
+
+
+
+}//end function
 
 function code(codeIn){
-  console.log("codes called");
+  console.log("code function called");
 
   //codes can be entered from any state (expect when logged out) and can be used
   //** to perform different functions on the register
 
   switch (codeIn) {
-    case 1: //logout
+    case "1": //logout
       logout();
       break;
-    case 2: //change PIN
+    case 22: //change PIN
       changePin();
       break;
     case 6: //return
@@ -570,9 +1709,25 @@ function code(codeIn){
       break;
     default: //code not found
       console.log("code not found");
-
+      printErrorState("Code Not Recognized", "*** PRESS ** CLEAR ***");
+      changeProgramState(2);
+      break;
   }
-}
+
+  //reset number
+  userNumber = undefined;
+}//end function
+
+function errorTriggered(){
+  console.log("errorTriggered called");
+
+  //this function is used to tell user when they pressed a button that couldn't
+  //be pressed
+
+  changeProgramState(6); //error state
+  printDefaultErrorMessage();
+
+}//end function
 
 function buttonEventListeners(){
   console.log("buttonEventListeners called");
@@ -704,476 +1859,411 @@ function buttonEventListeners(){
 function buttonSortByState(input){
   console.log("buttonSortByState called");
 
-  switch (currentDisplayState) {
+  switch (currentProgramState) {
     case 1:
-      console.log("State 1 - button: ", input);
       state1BtnActions(input);
       break;
     case 2:
-      console.log("State 2 - button: ", input);
       state2BtnActions(input);
       break;
     case 3:
-      console.log("State 3 - button: ", input);
       state3BtnActions(input);
       break;
     case 4:
-      console.log("State 4 - button: ", input);
       state4BtnActions(input);
       break;
     case 5:
-      console.log("State 5 - button: ", input);
       state5BtnActions(input);
       break;
     case 6:
-      console.log("State 6 - button: ", input);
       state6BtnActions(input);
       break;
     case 7:
-      console.log("State 7 - button: ", input);
       state7BtnActions(input);
       break;
+    default: //debugging
+      console.log("ERROR: button state unknown: ", currentProgramState);
+      break;
   }//end switch
 }//end function
 
-function state1BtnActions(input){
+function state1BtnActions(input){ //login
   console.log("state1BtnActions called");
   //State 1 - Total State
   switch (input) {
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+    case "6":
+    case "7":
+    case "8":
+    case "9":
+    login(1, input);
+      break;
+    case "enter":
+      login(2);
+      break;
+    case "clear":
+      login(3);
+      break;
+    // case "code":
+    //   break;
+    // case "suspend":
+    //   break;
+    case "verify":
+      break;
+    // case "tax":
+    //   break;
+    // case "no-sale":
+    //   break;
+    // case "eggs":
+    //   break;
+    // case "plastic":
+    //   break;
+    // case "employee":
+    //   break;
+    // case "mark-down":
+    //   break;
+    // case "price-override":
+    //   break;
+    // case "void":
+    //   break;
+    // case "subtotal":
+    //   break;
+    // case "paper":
+    //   break;
+    // case "qty":
+    //   break;
+    // case "total":
+    //   break;
+    // case "card":
+    //   break;
+    // case "gift-card":
+    //   break;
+    // case "cash":
+    //   break;
+
+
+    default:
+      errorTriggered();
+      break;
+
+
+  }//end switch
+}//end function
+
+function state2BtnActions(input){ //scanning
+  console.log("state2BtnActions called");
+
+  //State 2 - Scanning State
+
+  switch (input) {
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+    case "6":
+    case "7":
+    case "8":
+    case "9":
+    scan(1, input);
+      break;
+    case "clear":
+      scan(2);
+      break;
+    case "enter":
+      scan(3);
+      break;
     case "code":
-    console.log("Code clicked - State 1 - Active");
+      code(userNumber);
       break;
     case "suspend":
-    console.log("Suspend clicked - State 1 - Active");
       break;
+    case "verify":
+      break;
+    case "tax":
+      break;
+    case "no-sale":
+      break;
+    case "eggs":
+      break;
+    case "plastic":
+      break;
+    case "employee":
+      break;
+    case "mark-down":
+      break;
+    case "price-override":
+      break;
+    case "void":
+      break;
+    case "subtotal":
+      break;
+    case "paper":
+      break;
+    case "qty":
+      break;
+    case "total":
+      break;
+    // case "card":
+    // errorTriggered();
+    //   break;
+    // case "gift-card":
+    // errorTriggered();
+    //   break;
+    // case "Cash":
+    // errorTriggered();
+    //   break;
+    default:
+      console.log("ERROR: State 2 - Can't do that son");
+      errorTriggered();
+      break;
+  }//end switch
+}//end function
+
+function state3BtnActions(input){ //numbers, verify, enter, clear
+  console.log("state3BtnActions called");
+  //State 1 - Total State
+  switch (input) {
+    // case "code":
+    // console.log("Code clicked - State 1 - Active");
+    //   break;
+    // case "suspend":
+    // console.log("Suspend clicked - State 1 - Active");
+    //   break;
     case "verify":
     console.log("verify clicked - State 1 - Active");
       break;
-    case "tax":
-    console.log("tax clicked - State 1 - No action");
-      break;
-    case "no-sale":
-    console.log("No Sale clicked - State 1 - Active");
-      break;
-    case "eggs":
-    console.log("Eggs clicked - State 1 - Active");
-      break;
-    case "plastic":
-    console.log("plastic clicked - State 1 - Active");
-      break;
-    case "employee":
-    console.log("employee clicked - State 1 - No action");
-      break;
+    // case "tax":
+    // console.log("tax clicked - State 1 - No action");
+    //   break;
+    // case "no-sale":
+    // console.log("No Sale clicked - State 1 - Active");
+    //   break;
+    // case "eggs":
+    // console.log("Eggs clicked - State 1 - Active");
+    //   break;
+    // case "plastic":
+    // console.log("plastic clicked - State 1 - Active");
+    //   break;
+    // case "employee":
+    // console.log("employee clicked - State 1 - No action");
+    //   break;
     case "clear":
     console.log("clear clicked - State 1 - Active");
       break;
-    case "mark-down":
-    console.log("Mark Down clicked - State 1 - Active");
-      break;
-    case "price-override":
-    console.log("Price Override clicked - State 1 - Active");
-      break;
-    case "void":
-    console.log("void clicked - State 1 - No action");
-      break;
+    // case "mark-down":
+    // console.log("Mark Down clicked - State 1 - Active");
+    //   break;
+    // case "price-override":
+    // console.log("Price Override clicked - State 1 - Active");
+    //   break;
+    // case "void":
+    // console.log("void clicked - State 1 - No action");
+    //   break;
     case "7":
+    scan(1, input);
     console.log("7 clicked - State 1 - Active");
       break;
     case "8":
+    scan(1, input);
     console.log("8 clicked - State 1 - Active");
       break;
     case "9":
+    scan(1, input);
     console.log("9 clicked - State 1 - Active");
       break;
     case "4":
+    scan(1, input);
     console.log("4 clicked - State 1 - No action");
       break;
     case "5":
+    scan(1, input);
     console.log("5 clicked - State 1 - Active");
       break;
     case "6":
+    scan(1, input);
     console.log("6 clicked - State 1 - Active");
       break;
     case "1":
+    scan(1, input);
     console.log("1 clicked - State 1 - Active");
       break;
     case "2":
+    scan(1, input);
     console.log("2 clicked - State 1 - No action");
       break;
     case "3":
+    scan(1, input);
     console.log("3 clicked - State 1 - Active");
       break;
     case "0":
+    scan(1, input);
     console.log("0 clicked - State 1 - Active");
       break;
-    case "subtotal":
-    console.log("subtotal clicked - State 1 - Active");
-      break;
-    case "paper":
-    console.log("paper clicked - State 1 - No action");
-      break;
-    case "qty":
-    console.log("qty clicked - State 1 - Active");
-      break;
+    // case "subtotal":
+    // console.log("subtotal clicked - State 1 - Active");
+    //   break;
+    // case "paper":
+    // console.log("paper clicked - State 1 - No action");
+    //   break;
+    // case "qty":
+    // console.log("qty clicked - State 1 - Active");
+    //   break;
     case "total":
     console.log("total clicked - State 1 - Active");
       break;
     case "enter":
     console.log("enter clicked - State 1 - Active");
       break;
-    case "card":
-    console.log("card clicked - State 1 - No action");
-      break;
-    case "gift-card":
-    console.log("Gift Card clicked - State 1 - Active");
-      break;
-    case "cash":
-    console.log("Cash clicked - State 1 - Active");
-      break;
+    // case "card":
+    // console.log("card clicked - State 1 - No action");
+    //   break;
+    // case "gift-card":
+    // console.log("Gift Card clicked - State 1 - Active");
+    //   break;
+    // case "Cash":
+    // console.log("Cash clicked - State 1 - Active");
+    //   break;
     default:
       console.log("ERROR: could not find the button you clicked");
       break;
   }//end switch
 }//end function
 
-function state2BtnActions(input){
-  console.log("state1BtnActions called");
+function state4BtnActions(input){ //clear
+  console.log("state4BtnActions called");
   //State 1 - Total State
   switch (input) {
-    case "code":
-    console.log("Code clicked - State 2 - Active");
-      break;
-    case "suspend":
-    console.log("Suspend clicked - State 2 - Active");
-      break;
-    case "verify":
-    console.log("verify clicked - State 2 - Active");
-      break;
-    case "tax":
-    console.log("tax clicked - State 2 - No action");
-      break;
-    case "no-sale":
-    console.log("No Sale clicked - State 2 - Active");
-      break;
-    case "eggs":
-    console.log("Eggs clicked - State 2 - Active");
-      break;
-    case "plastic":
-    console.log("plastic clicked - State 2 - Active");
-      break;
-    case "employee":
-    console.log("employee clicked - State 2 - No action");
-      break;
+    // case "code":
+    // console.log("Code clicked - State 1 - Active");
+    //   break;
+    // case "suspend":
+    // console.log("Suspend clicked - State 1 - Active");
+    //   break;
+    // case "verify":
+    // console.log("verify clicked - State 1 - Active");
+    //   break;
+    // case "tax":
+    // console.log("tax clicked - State 1 - No action");
+    //   break;
+    // case "no-sale":
+    // console.log("No Sale clicked - State 1 - Active");
+    //   break;
+    // case "eggs":
+    // console.log("Eggs clicked - State 1 - Active");
+    //   break;
+    // case "plastic":
+    // console.log("plastic clicked - State 1 - Active");
+    //   break;
+    // case "employee":
+    // console.log("employee clicked - State 1 - No action");
+    //   break;
     case "clear":
-    console.log("clear clicked - State 2 - Active");
+
       break;
-    case "mark-down":
-    console.log("Mark Down clicked - State 2 - Active");
-      break;
-    case "price-override":
-    console.log("Price Override clicked - State 2 - Active");
-      break;
-    case "void":
-    console.log("void clicked - State 2 - No action");
-      break;
-    case "7":
-      console.log("7 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "8":
-      console.log("8 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "9":
-      console.log("9 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "4":
-      console.log("4 clicked - State 2 - No action");
-      scan(2, input);
-      break;
-    case "5":
-      console.log("5 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "6":
-      console.log("6 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "1":
-      console.log("1 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "2":
-      console.log("2 clicked - State 2 - No action");
-      scan(2, input);
-      break;
-    case "3":
-      console.log("3 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "0":
-      console.log("0 clicked - State 2 - Active");
-      scan(2, input);
-      break;
-    case "subtotal":
-    console.log("subtotal clicked - State 2 - Active");
-      break;
-    case "paper":
-    console.log("paper clicked - State 2 - No action");
-      break;
-    case "qty":
-    console.log("qty clicked - State 2 - Active");
-      break;
-    case "total":
-    console.log("total clicked - State 2 - Active");
-      break;
-    case "enter":
-    console.log("enter clicked - State 2 - Active");
-      break;
-    case "card":
-    console.log("card clicked - State 2 - No action");
-      break;
-    case "gift-card":
-    console.log("Gift Card clicked - State 2 - Active");
-      break;
-    case "Cash":
-    console.log("Cash clicked - State 2 - Active");
-      break;
+    // case "mark-down":
+    // console.log("Mark Down clicked - State 1 - Active");
+    //   break;
+    // case "price-override":
+    // console.log("Price Override clicked - State 1 - Active");
+    //   break;
+    // case "void":
+    // console.log("void clicked - State 1 - No action");
+    //   break;
+    // case "7":
+    // console.log("7 clicked - State 1 - Active");
+    //   break;
+    // case "8":
+    // console.log("8 clicked - State 1 - Active");
+    //   break;
+    // case "9":
+    // console.log("9 clicked - State 1 - Active");
+    //   break;
+    // case "4":
+    // console.log("4 clicked - State 1 - No action");
+    //   break;
+    // case "5":
+    // console.log("5 clicked - State 1 - Active");
+    //   break;
+    // case "6":
+    // console.log("6 clicked - State 1 - Active");
+    //   break;
+    // case "1":
+    // console.log("1 clicked - State 1 - Active");
+    //   break;
+    // case "2":
+    // console.log("2 clicked - State 1 - No action");
+    //   break;
+    // case "3":
+    // console.log("3 clicked - State 1 - Active");
+    //   break;
+    // case "0":
+    // console.log("0 clicked - State 1 - Active");
+    //   break;
+    // case "subtotal":
+    // console.log("subtotal clicked - State 1 - Active");
+    //   break;
+    // case "paper":
+    // console.log("paper clicked - State 1 - No action");
+    //   break;
+    // case "qty":
+    // console.log("qty clicked - State 1 - Active");
+    //   break;
+    // case "total":
+    // console.log("total clicked - State 1 - Active");
+    //   break;
+    // case "enter":
+    // console.log("enter clicked - State 1 - Active");
+    //   break;
+    // case "card":
+    // console.log("card clicked - State 1 - No action");
+    //   break;
+    // case "gift-card":
+    // console.log("Gift Card clicked - State 1 - Active");
+    //   break;
+    // case "Cash":
+    // console.log("Cash clicked - State 1 - Active");
+    //   break;
     default:
       console.log("ERROR: could not find the button you clicked");
       break;
   }//end switch
 }//end function
 
-function state3BtnActions(input){
-  console.log("state1BtnActions called");
+function state5BtnActions(input){ //total, enter, clear
+  console.log("state5BtnActions called");
   //State 1 - Total State
   switch (input) {
-    case "code":
-    console.log("Code clicked - State 1 - Active");
-      break;
-    case "suspend":
-    console.log("Suspend clicked - State 1 - Active");
-      break;
-    case "verify":
-    console.log("verify clicked - State 1 - Active");
-      break;
-    case "tax":
-    console.log("tax clicked - State 1 - No action");
-      break;
-    case "no-sale":
-    console.log("No Sale clicked - State 1 - Active");
-      break;
-    case "eggs":
-    console.log("Eggs clicked - State 1 - Active");
-      break;
-    case "plastic":
-    console.log("plastic clicked - State 1 - Active");
-      break;
-    case "employee":
-    console.log("employee clicked - State 1 - No action");
-      break;
-    case "clear":
-    console.log("clear clicked - State 1 - Active");
-      break;
-    case "mark-down":
-    console.log("Mark Down clicked - State 1 - Active");
-      break;
-    case "price-override":
-    console.log("Price Override clicked - State 1 - Active");
-      break;
-    case "void":
-    console.log("void clicked - State 1 - No action");
-      break;
-    case "7":
-    console.log("7 clicked - State 1 - Active");
-      break;
-    case "8":
-    console.log("8 clicked - State 1 - Active");
-      break;
-    case "9":
-    console.log("9 clicked - State 1 - Active");
-      break;
-    case "4":
-    console.log("4 clicked - State 1 - No action");
-      break;
-    case "5":
-    console.log("5 clicked - State 1 - Active");
-      break;
-    case "6":
-    console.log("6 clicked - State 1 - Active");
-      break;
-    case "1":
-    console.log("1 clicked - State 1 - Active");
-      break;
-    case "2":
-    console.log("2 clicked - State 1 - No action");
-      break;
-    case "3":
-    console.log("3 clicked - State 1 - Active");
-      break;
-    case "0":
-    console.log("0 clicked - State 1 - Active");
-      break;
-    case "subtotal":
-    console.log("subtotal clicked - State 1 - Active");
-      break;
-    case "paper":
-    console.log("paper clicked - State 1 - No action");
-      break;
-    case "qty":
-    console.log("qty clicked - State 1 - Active");
-      break;
-    case "total":
-    console.log("total clicked - State 1 - Active");
-      break;
-    case "enter":
-    console.log("enter clicked - State 1 - Active");
-      break;
-    case "card":
-    console.log("card clicked - State 1 - No action");
-      break;
-    case "gift-card":
-    console.log("Gift Card clicked - State 1 - Active");
-      break;
-    case "Cash":
-    console.log("Cash clicked - State 1 - Active");
-      break;
-    default:
-      console.log("ERROR: could not find the button you clicked");
-      break;
-  }//end switch
-}//end function
-
-function state4BtnActions(input){
-  console.log("state1BtnActions called");
-  //State 1 - Total State
-  switch (input) {
-    case "code":
-    console.log("Code clicked - State 1 - Active");
-      break;
-    case "suspend":
-    console.log("Suspend clicked - State 1 - Active");
-      break;
-    case "verify":
-    console.log("verify clicked - State 1 - Active");
-      break;
-    case "tax":
-    console.log("tax clicked - State 1 - No action");
-      break;
-    case "no-sale":
-    console.log("No Sale clicked - State 1 - Active");
-      break;
-    case "eggs":
-    console.log("Eggs clicked - State 1 - Active");
-      break;
-    case "plastic":
-    console.log("plastic clicked - State 1 - Active");
-      break;
-    case "employee":
-    console.log("employee clicked - State 1 - No action");
-      break;
-    case "clear":
-    console.log("clear clicked - State 1 - Active");
-      break;
-    case "mark-down":
-    console.log("Mark Down clicked - State 1 - Active");
-      break;
-    case "price-override":
-    console.log("Price Override clicked - State 1 - Active");
-      break;
-    case "void":
-    console.log("void clicked - State 1 - No action");
-      break;
-    case "7":
-    console.log("7 clicked - State 1 - Active");
-      break;
-    case "8":
-    console.log("8 clicked - State 1 - Active");
-      break;
-    case "9":
-    console.log("9 clicked - State 1 - Active");
-      break;
-    case "4":
-    console.log("4 clicked - State 1 - No action");
-      break;
-    case "5":
-    console.log("5 clicked - State 1 - Active");
-      break;
-    case "6":
-    console.log("6 clicked - State 1 - Active");
-      break;
-    case "1":
-    console.log("1 clicked - State 1 - Active");
-      break;
-    case "2":
-    console.log("2 clicked - State 1 - No action");
-      break;
-    case "3":
-    console.log("3 clicked - State 1 - Active");
-      break;
-    case "0":
-    console.log("0 clicked - State 1 - Active");
-      break;
-    case "subtotal":
-    console.log("subtotal clicked - State 1 - Active");
-      break;
-    case "paper":
-    console.log("paper clicked - State 1 - No action");
-      break;
-    case "qty":
-    console.log("qty clicked - State 1 - Active");
-      break;
-    case "total":
-    console.log("total clicked - State 1 - Active");
-      break;
-    case "enter":
-    console.log("enter clicked - State 1 - Active");
-      break;
-    case "card":
-    console.log("card clicked - State 1 - No action");
-      break;
-    case "gift-card":
-    console.log("Gift Card clicked - State 1 - Active");
-      break;
-    case "Cash":
-    console.log("Cash clicked - State 1 - Active");
-      break;
-    default:
-      console.log("ERROR: could not find the button you clicked");
-      break;
-  }//end switch
-}//end function
-
-function state5BtnActions(input){
-  console.log("state1BtnActions called");
-  //State 1 - Total State
-  switch (input) {
-    case "code":
-    console.log("Code clicked - State 1 - Active");
-      break;
-    case "suspend":
-    console.log("Suspend clicked - State 1 - Active");
-      break;
-    case "verify":
-    console.log("verify clicked - State 1 - Active");
-      break;
-    case "tax":
-    console.log("tax clicked - State 1 - No action");
-      break;
-    case "no-sale":
-    console.log("No Sale clicked - State 1 - Active");
-      break;
-    case "eggs":
-    console.log("Eggs clicked - State 1 - Active");
-      break;
-    case "plastic":
-    console.log("plastic clicked - State 1 - Active");
-      break;
-    case "employee":
-    console.log("employee clicked - State 1 - No action");
-      break;
+    // case "code":
+    // console.log("Code clicked - State 1 - Active");
+    //   break;
+    // case "suspend":
+    // console.log("Suspend clicked - State 1 - Active");
+    //   break;
+    // case "verify":
+    // console.log("verify clicked - State 1 - Active");
+    //   break;
+    // case "tax":
+    // console.log("tax clicked - State 1 - No action");
+    //   break;
+    // case "no-sale":
+    // console.log("No Sale clicked - State 1 - Active");
+    //   break;
+    // case "eggs":
+    // console.log("Eggs clicked - State 1 - Active");
+    //   break;
+    // case "plastic":
+    // console.log("plastic clicked - State 1 - Active");
+    //   break;
+    // case "employee":
+    // console.log("employee clicked - State 1 - No action");
+    //   break;
     case "clear":
     console.log("clear clicked - State 5 - Active");
       switch (previousDisplayState) {
@@ -1202,257 +2292,180 @@ function state5BtnActions(input){
 
       }
       break;
-    case "mark-down":
-    console.log("Mark Down clicked - State 1 - Active");
-      break;
-    case "price-override":
-    console.log("Price Override clicked - State 1 - Active");
-      break;
-    case "void":
-    console.log("void clicked - State 1 - No action");
-      break;
-    case "7":
-      scan(1);
-    console.log("7 clicked - State 1 - Active");
-      break;
-    case "8":
-    console.log("8 clicked - State 1 - Active");
-      break;
-    case "9":
-    console.log("9 clicked - State 1 - Active");
-      break;
-    case "4":
-    console.log("4 clicked - State 1 - No action");
-      break;
-    case "5":
-    console.log("5 clicked - State 1 - Active");
-      break;
-    case "6":
-    console.log("6 clicked - State 1 - Active");
-      break;
-    case "1":
-    console.log("1 clicked - State 1 - Active");
-      break;
-    case "2":
-    console.log("2 clicked - State 1 - No action");
-      break;
-    case "3":
-    console.log("3 clicked - State 1 - Active");
-      break;
-    case "0":
-    console.log("0 clicked - State 1 - Active");
-      break;
-    case "subtotal":
-    console.log("subtotal clicked - State 1 - Active");
-      break;
-    case "paper":
-    console.log("paper clicked - State 1 - No action");
-      break;
-    case "qty":
-    console.log("qty clicked - State 1 - Active");
-      break;
+    // case "mark-down":
+    // console.log("Mark Down clicked - State 1 - Active");
+    //   break;
+    // case "price-override":
+    // console.log("Price Override clicked - State 1 - Active");
+    //   break;
+    // case "void":
+    // console.log("void clicked - State 1 - No action");
+    //   break;
+    // case "7":
+    //   scan(1);
+    // console.log("7 clicked - State 1 - Active");
+    //   break;
+    // case "8":
+    // console.log("8 clicked - State 1 - Active");
+    //   break;
+    // case "9":
+    // console.log("9 clicked - State 1 - Active");
+    //   break;
+    // case "4":
+    // console.log("4 clicked - State 1 - No action");
+    //   break;
+    // case "5":
+    // console.log("5 clicked - State 1 - Active");
+    //   break;
+    // case "6":
+    // console.log("6 clicked - State 1 - Active");
+    //   break;
+    // case "1":
+    // console.log("1 clicked - State 1 - Active");
+    //   break;
+    // case "2":
+    // console.log("2 clicked - State 1 - No action");
+    //   break;
+    // case "3":
+    // console.log("3 clicked - State 1 - Active");
+    //   break;
+    // case "0":
+    // console.log("0 clicked - State 1 - Active");
+    //   break;
+    // case "subtotal":
+    // console.log("subtotal clicked - State 1 - Active");
+    //   break;
+    // case "paper":
+    // console.log("paper clicked - State 1 - No action");
+    //   break;
+    // case "qty":
+    // console.log("qty clicked - State 1 - Active");
+    //   break;
     case "total":
     console.log("total clicked - State 1 - Active");
       break;
     case "enter":
     console.log("enter clicked - State 1 - Active");
       break;
-    case "card":
-    console.log("card clicked - State 1 - No action");
-      break;
-    case "gift-card":
-    console.log("Gift Card clicked - State 1 - Active");
-      break;
-    case "Cash":
-    console.log("Cash clicked - State 1 - Active");
-      break;
+    // case "card":
+    // console.log("card clicked - State 1 - No action");
+    //   break;
+    // case "gift-card":
+    // console.log("Gift Card clicked - State 1 - Active");
+    //   break;
+    // case "Cash":
+    // console.log("Cash clicked - State 1 - Active");
+    //   break;
     default:
       console.log("ERROR: could not find the button you clicked");
       break;
   }//end switch
 }//end function
 
-function state6BtnActions(input){
-  console.log("state1BtnActions called");
-  //State 1 - Total State
+function state6BtnActions(input){ //error state
+  console.log("state6BtnActions called");
+
+  //State 6 - Error State
+  //only way a user can get out of error state is to press clear
+  //all other buttons deactivated
+
   switch (input) {
-    case "code":
-      break;
-    case "suspend":
-      break;
-    case "verify":
-      break;
-    case "tax":
-      break;
-    case "no-sale":
-      break;
-    case "eggs":
-      break;
-    case "plastic":
-      break;
-    case "employee":
-      break;
     case "clear":
-    login(3);
+      autoSetState(); //return to whatever program state should be
       break;
-    case "mark-down":
-      break;
-    case "price-override":
-      break;
-    case "void":
-      break;
-    case "7":
-    login(1, input);
-      break;
-    case "8":
-    login(1, input);
-      break;
-    case "9":
-    login(1, input);
-      break;
-    case "4":
-    login(1, input);
-      break;
-    case "5":
-    login(1, input);
-      break;
-    case "6":
-    login(1, input);
-      break;
-    case "1":
-    login(1, input);
-      break;
-    case "2":
-    login(1, input);
-      break;
-    case "3":
-    login(1, input);
-      break;
-    case "0":
-    login(1, input);
-      break;
-    case "subtotal":
-      break;
-    case "paper":
-      break;
-    case "qty":
-      break;
-    case "total":
-      break;
-    case "enter":
-    login(2);
-      break;
-    case "card":
-      break;
-    case "gift-card":
-      break;
-    case "Cash":
-      break;
-    default:
-      console.log("ERROR: could not find the button you clicked");
+
+    default: //default action will eventually include a buzz sound
+      console.log("ERROR: State 6 - Can't do that son");
       break;
   }//end switch
 }//end function
 
 function state7BtnActions(input){
-  console.log("state1BtnActions called");
-  //State 1 - Total State
+  console.log("state7BtnActions called");
+  //State 7 - new cart - (most buttons are disabled, this is a very specific situation
+  //so creating a new state simplified the scan() function
+
   switch (input) {
-    case "code":
-    console.log("Code clicked - State 1 - Active");
-      break;
-    case "suspend":
-    console.log("Suspend clicked - State 1 - Active");
-      break;
-    case "verify":
-    console.log("verify clicked - State 1 - Active");
-      break;
-    case "tax":
-    console.log("tax clicked - State 1 - No action");
-      break;
-    case "no-sale":
-    console.log("No Sale clicked - State 1 - Active");
-      break;
-    case "eggs":
-    console.log("Eggs clicked - State 1 - Active");
-      break;
-    case "plastic":
-    console.log("plastic clicked - State 1 - Active");
-      break;
-    case "employee":
-    console.log("employee clicked - State 1 - No action");
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+    case "6":
+    case "7":
+    case "8":
+    case "9":
+    scan(1, input);
       break;
     case "clear":
-    console.log("clear clicked - State 1 - Active");
-      break;
-    case "mark-down":
-    console.log("Mark Down clicked - State 1 - Active");
-      break;
-    case "price-override":
-    console.log("Price Override clicked - State 1 - Active");
-      break;
-    case "void":
-    console.log("void clicked - State 1 - No action");
-      break;
-    case "7":
-    console.log("7 clicked - State 1 - Active");
-      break;
-    case "8":
-    console.log("8 clicked - State 1 - Active");
-      break;
-    case "9":
-    console.log("9 clicked - State 1 - Active");
-      break;
-    case "4":
-    console.log("4 clicked - State 1 - No action");
-      break;
-    case "5":
-    console.log("5 clicked - State 1 - Active");
-      break;
-    case "6":
-    console.log("6 clicked - State 1 - Active");
-      break;
-    case "1":
-    console.log("1 clicked - State 1 - Active");
-      break;
-    case "2":
-    console.log("2 clicked - State 1 - No action");
-      break;
-    case "3":
-    console.log("3 clicked - State 1 - Active");
-      break;
-    case "0":
-    console.log("0 clicked - State 1 - Active");
-      break;
-    case "subtotal":
-    console.log("subtotal clicked - State 1 - Active");
-      break;
-    case "paper":
-    console.log("paper clicked - State 1 - No action");
-      break;
-    case "qty":
-    console.log("qty clicked - State 1 - Active");
-      break;
-    case "total":
-    console.log("total clicked - State 1 - Active");
+      //check for entered number
+      if(userNumber === undefined){
+        errorTriggered();
+      } else {
+        scan(2);
+      }
       break;
     case "enter":
-    console.log("enter clicked - State 1 - Active");
+      //check for entered number
+      if(userNumber === undefined){
+        errorTriggered();
+      } else {
+        scan(3);
+      }
       break;
-    case "card":
-    console.log("card clicked - State 1 - No action");
+
+      //follow buttons turned off
+
+    case "code":
+      code(userNumber);
       break;
-    case "gift-card":
-    console.log("Gift Card clicked - State 1 - Active");
-      break;
-    case "Cash":
-    console.log("Cash clicked - State 1 - Active");
-      break;
+    // case "suspend":
+    //   break;
+    // case "verify":
+    //   break;
+    // case "tax":
+    //   break;
+    // case "no-sale":
+    //   break;
+    // case "eggs":
+    //   break;
+    // case "plastic":
+    //   break;
+    // case "employee":
+    //   break;
+    // case "mark-down":
+    //   break;
+    // case "price-override":
+    //   break;
+    // case "void":
+    //   break;
+    // case "subtotal":
+    //   break;
+    // case "paper":
+    //   break;
+    // case "qty":
+    //   break;
+    // case "total":
+    //   break;
+    // case "card":
+    //   break;
+    // case "gift-card":
+    //   break;
+    // case "Cash":
+    //   break;
+
+
     default:
-      console.log("ERROR: could not find the button you clicked");
+      console.log("ERROR: State 7 - button not available");
+      errorTriggered();
       break;
+
+
   }//end switch
-}//end functions
+}//end function
+
+//unique button functions
 
 
 //######################################################################
@@ -1485,42 +2498,119 @@ ajax.onreadystatechange = function()
     data = JSON.parse(this.responseText);
 
     //set variables
-    shiftSet = 0;
-    loggedIn = 0; //0 = logged out, 1 = logged in
-    previousDisplayState = 0; //what the last display state was (used to turn of event listeners)
-    currentDisplayState = 1; //what is the display state
-    //value is changed by changeState()
-    //value is needed for event listeners to know what to listen to
+    {
 
-    //user will be set by savedUsers()
-    user = {
-      name:"Benjamin",
-      id:"77",
-      pin:"2222"
-    };
+      //login() variables
+      shiftSet = 0; // set once per shift on first login and last logout (code 86) -- used to track user data over entire day
+      loggedIn = 0; //0 = logged out, 1 = logged in
 
-    idPass = 0; //DO NOT DELETE -- used by login() -- documentation for use in login()
-    subTotal = 0; //used for calculating subtotal -- documentation in scan()
-    lastItem = 0; //used to count sequencial scanned items -- documentation in scan()
-    itemCount = 0;
-    triggerKeyIn = 0;
+      //changeProgramState variables
+      previousProgramState = 0; //previous program state
+      currentProgramState = 1; //current program state
+
+      //Program States
+      PS_LOGIN = 1;
+      PS_SCANNING = 2;
+      PS_TOTAL = 3;
+      PS_PAYMENT = 4;
+      PS_MESSAGE = 5;
+      PS_ERROR = 6;
+      PS_NEWCART = 7;
+
+      //changeDisplayState() variables
+      previousDisplayState = 0; //previous display state
+      currentDisplayState = 1; //current display state
+
+      //Display States
+      DS_TOTAL = 1;
+      DS_SCANNING = 2;
+      DS_SCAN_KEYIN = 3;
+      DS_SCAN_QTY = 4;
+      DS_ERROR = 5;
+      DS_MESSAGE = 6;
+      DS_LOGIN = 7;
+      DS_OPTION = 8;
+
+      //user will be set by savedUsers()
+      user = {
+        name:"Benjamin",
+        id:"77",
+        pin:"2222"
+      };
+
+      store = {
+        number:"22",
+        address:"2617 Lakeside Dr, Lynchburg, VA 24501",
+        website:"www.ALDI.us"
+      };
+
+      //login() variables
+      idPass = 0; //determine if entered ID or PIN
+
+
+
+      //scan() variables
+      newCart = 0; //if nothing in cart
+      newItemQty = 0; //If qty is used
+      cartId = 1; //start
+      itemCount = 1; //counts sequential items
+      lastItem = undefined; //used to count sequential items, compares current item to last item
+      thePrice = 0; //price of item
+      subTotal = 0; //running subtotal of order
+      checkID = 0; //change to 1 if an item requires ID verification
+      COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
+      scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
+
+
+
+      //buildCartArray() variables
+      myCart = new Array({
+        index: 0,
+        quantity: 0,
+        weight: 0,
+        void: false
+      });
+      myCartIndex = 0; //used to index the myCart array
+
+      //saveCartToArray() variables
+      allMyCarts = new Array(myCart);
+      allMyCartsIndex = 0;
+
+      //newPrinterTest() variables
+      currentCartId = 1;
+      cancelStandardOut = 0;
+      cancelQuantityOut = 0;
+      cancelWeightedOut = 0;
+
+    }
 
     //load eventListener
     buttonEventListeners();
-    count = 0; //for testing the do/while
 
     //login -- first sign in includes a user database load (eventually)
-    if(loggedIn == 0){//if not logged in, call login script
-      login();
-      //if shift not started, start shift
-      if(shiftSet == 0){
-        //shiftSet = 1;
-      }
-    }
+    // if(loggedIn == 0){//if not logged in, call login script
+    //   login();
+    //   //if shift not started, start shift
+    //   if(shiftSet == 0){
+    //     //shiftSet = 1;
+    //   }
+    // }
 
-    //scan();
+    //initialize program
+    buttonEventListeners(); //load eventListeners
+    initializeWallet(); // create wallet
 
-    printData();
+    //print output
+    printData(); //print food database to display -- testing only
+    printWallet(myPaymentCard); //print wallet to display
+    printWeightToDisplay(0); //print scale
+    printerMain(); //reset printer, print header on reciept
+
+    //start program
+    autoSetState();
+
+
+
 
   }//END OF AJAX
 }//END OF AJAX
