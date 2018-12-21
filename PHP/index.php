@@ -188,7 +188,7 @@
       <section id="login-state" class="hide">
         <table>
           <tr>
-            <td><input id="LS-U" class="table-form text-left p-left" type="text" value="Cashier: Benjamin"></td>
+            <td><input id="LS-U" class="table-form text-left p-left" type="text" value="Cashier: HTML"></td>
           </tr>
         </table>
         <table>
@@ -249,13 +249,39 @@
       <div id="btn-enter" class="key active key-big c-orange" style="top: 257px; left: 479px; padding-top: 35px;"><p>Enter</p></div>
       <div class="key key-blank c-blank" style="top: 25px; left: 421px;"></div>
       <div class="key key-blank c-blank" style="top: 25px; left: 479px;"></div>
-      <div class="key key-blank c-blank" style="top: 25px; left: 537px;"></div>
+      <div id="btn-enable-admin" class="key key-blank c-blank" style="top: 25px; left: 537px; padding-top: 14px;">Enable<br/>Admin</div>
       <div class="key key-blank c-blank" style="top: 83px; left: 537px;"></div>
       <div class="key key-blank c-blank" style="top: 83px; left: 421px;"></div>
       <div class="key key-blank c-blank" style="top: 83px; left: 479px;"></div>
       <div id="btn-card" class="key active key-tall c-orange" style="top: 141px; left: 421px; padding-top: 35px;"><p>Card</p></div>
       <div id="btn-gift-card" class="key active key-tall c-orange" style="top: 141px; left: 479px; padding-top: 30px;"><p>Gift<br/>Card</p></div>
       <div id="btn-cash" class="key active key-tall c-orange" style="top: 141px; left: 537px; padding-top: 35px;"><p>Cash</p></div>
+
+
+      <!-- Simulator buttons only -- these are not found on real register, but are used
+      by the simulator for specific functions  -->
+
+      <!-- left column -->
+      <div id="sim-1" class="key hide key-blank c-sim-red" style="top: 199px; left: 15px; padding-top: 17px;">1</div>
+      <!-- <div id="sim-2" class="key hide key-blank c-sim-red" style="top: 257px; left: 15px; padding-top: 18px;">Open</div> -->
+      <!-- <div id="sim-3" class="key hide key-blank c-sim-red" style="top: 315px; left: 15px; padding-top: 18px;">Close</div> -->
+      <div id="sim-2" class="key hide key-tall c-sim-red" style="top: 257px; left: 15px; padding-top: 32px;">Cash<br/>Drawer<br/>Closed</div>
+      <div id="sim-3" class="key hide key-tall c-sim-green" style="top: 257px; left: 15px; padding-top: 32px;">Cash<br/>Drawer<br/>Open</div>
+
+      <!-- middle column -->
+      <div id="sim-4" class="key hide key-blank c-sim-red" style="top: 141px; left: 131px; padding-top: 17px;">1</div>
+      <div id="sim-5" class="key hide key-blank c-sim-red" style="top: 199px; left: 131px; padding-top: 17px;">2</div>
+      <div id="sim-6" class="key hide key-blank c-sim-red" style="top: 257px; left: 131px; padding-top: 17px;">3</div>
+      <div id="sim-7" class="key hide key-blank c-sim-red" style="top: 315px; left: 131px; padding-top: 17px;">4</div>
+
+      <!-- top right group -->
+      <div id="sim-8" class="key hide key-blank c-sim-red" style="top: 25px; left: 421px; padding-top: 17px;">Login</div>
+      <div id="sim-9" class="key hide key-blank c-sim-red" style="top: 25px; left: 479px; padding-top: 14px;">Show<br/>Help</div>
+      <div id="sim-10" class="key hide key-blank c-sim-red" style="top: 25px; left: 537px; padding-top: 14px;">Exit<br/>Admin</div>
+      <div id="sim-11" class="key hide key-blank c-sim-red" style="top: 83px; left: 421px; padding-top: 17px;">Logout</div>
+      <div id="sim-12" class="key hide key-blank c-sim-red" style="top: 83px; left: 479px; padding-top: 14px;">Show<br/>Codes</div>
+      <div id="sim-13" class="key hide key-blank c-sim-red" style="top: 83px; left: 537px; padding-top: 14px;">Reset<br/>Cart</div>
+
 
     </div> <!-- END KEYBOARD -->
 

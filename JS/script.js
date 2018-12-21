@@ -1,6 +1,8 @@
-console.log("Page Load Success v.3.2");
+//**********************************
+//****** supporting functions ******
+//****** called by other functions to do a task ****
 
-//define functions
+
 function printData(){
   console.log("printData Called");
     //generate html to replace <tbody>
@@ -78,7 +80,7 @@ function searchFood(searchInput){
 
   //Check for NLU
   if(searchInput.length <= 2){
-    console.log("Checking NLU codes...", searchInput);
+    console.log("Checking NLU code:", searchInput);
     //Loop through data
     for(var i = 0; i < data.length; i++){
       console.log("Row: ", i);
@@ -90,7 +92,7 @@ function searchFood(searchInput){
 
       let lastItemInArray = data.length - 1; //subtract 1 because .length doesn't include 0
       if(i == lastItemInArray){ //if no match found....
-        console.log("FOOD ITEM NOT FOUND");
+        console.warn("FOOD ITEM NOT FOUND");
         return 0;
       }
     }
@@ -98,7 +100,7 @@ function searchFood(searchInput){
 
   //Check for Smart Code
   if(searchInput.length == 5){
-    console.log("Checking Smart codes");
+    console.log("Checking Smart codes:", searchInput);
      //Loop through data
     for(var i = 0; i < data.length; i++){
       console.log("Row: ", i);
@@ -110,7 +112,7 @@ function searchFood(searchInput){
 
       let lastItemInArray = data.length - 1; //subtract 1 because .length doesn't include 0
       if(i == lastItemInArray){ //if no match found....
-        console.log("FOOD ITEM NOT FOUND");
+        console.warn("FOOD ITEM NOT FOUND");
         return 0;
       }
     }
@@ -118,7 +120,7 @@ function searchFood(searchInput){
 
   //Check for UPC
   if(searchInput.length == 12){
-     console.log("Checking UPC codes");
+     console.log("Checking UPC codes:", searchInput);
       //Loop through data
       for(var i = 0; i < data.length; i++){
         console.log("Row: ", i);
@@ -130,15 +132,54 @@ function searchFood(searchInput){
 
         let lastItemInArray = data.length - 1; //subtract 1 because .length doesn't include 0
         if(i == lastItemInArray){ //if no match found....
-          console.log("FOOD ITEM NOT FOUND");
+          console.warn("FOOD ITEM NOT FOUND");
           return 0;
         }
       }
     } else {
         //number type doesn't match NLU, SC, or UPC
-        console.log("Number not valid");
+        console.warn("Number not valid");
         return -1;
     }
+}//end function
+
+function searchUsers(input){
+  console.log("searchUsers called");
+
+  //scans only for a user id
+  //returns user id index for first match found
+  //returns -1 for no match found
+  //returns -2 if you messed up
+
+  //login will then use this index to match the ID and pin
+
+  //set default values
+  if(input === undefined){
+    console.error("search parameter missing");
+    return -2;
+  }
+
+  for(let i = 0; i < userProfiles.length; i++){
+    if(userProfiles[i].id == input){
+      console.log("Match found");
+      return i; // 1 == match found
+    }
+  }
+  //in theory you should only see this if the loop did not find a match
+  console.warn("No match found for user id");
+  return -1; // 0 == no match found
+
+}//end function
+
+function errorTriggered(){ //default error message for unallowed key press
+  console.log("errorTriggered called");
+
+  //this function is used to tell user when they pressed a button that couldn't
+  //be pressed
+
+  changeProgramState(6); //error state
+  printDefaultErrorMessage();
+
 }//end function
 
 function hideState(){
@@ -155,10 +196,7 @@ function hideState(){
   document.getElementById("message-state").classList.add("hide");
   document.getElementById("login-state").classList.add("hide");
   document.getElementById("option-state").classList.add("hide");
-}
-
-outOfPaper = 0; // trigger point set to 5
-pickupNeeded = 0; //trigger set at 1400;
+}//end function
 
 function messageBanner(){
   console.log("messageBanner called");
@@ -169,7 +207,7 @@ function messageBanner(){
 
   //check receipt roll
   //for testing value is set to 5, for real life change to 100
-  if(outOfPaper > 5){
+  if(paperCounter > NEED_PAPER_SOON){
     return "Check Paper Roll";
   }
 
@@ -181,6 +219,103 @@ function messageBanner(){
   //if no notifications, return default message
   return "Check Under Cart";
 }
+
+function buildScanNumber(number){
+  console.log("buildNumber called");
+
+  //buildNumber is used to build the number as user enters a number
+
+
+  //update variable
+  if(userNumber === undefined){
+    userNumber = number;
+  } else {
+    //assume userNumber is part way through build
+    userNumber += number; //add number on
+  }
+
+  console.warn("userNumber: ", userNumber);
+
+  //Print number to display
+  switch (currentProgramState) {
+    case 1: //login
+      //is this the first sign in or a regular log in?
+      if(shiftSet == 0){
+        //signIn();
+      } else {
+        //login();
+      }
+      break;
+    case 2: //scanning
+      printScanningKeyinState(data[lastItem].Description, userNumber);
+      break;
+    case 3: //total
+
+      break;
+    case 4: //payment
+
+      break;
+    case 5: //message
+      //Message is unique, unlikely this will be used here
+      break;
+    case 6: //error
+      //will never appear here
+      break;
+    case 7: //new cart
+      let notification = messageBanner();
+      printScanningKeyinState(notification, userNumber);
+      break;
+    default: //debugging message
+      console.log("currentDisplayState error - unknown");
+      break;
+
+  }//end switch
+
+
+}//end function
+
+function backdoor(input){ //backdoor -- for dev use only
+  console.log("backdoor called");
+
+  //backdoor, used to bypass login functions
+
+  switch (input) {
+    case 1: //login
+      loggedIn = 1;
+      shiftSet = 1;
+      userResultIndex = 4; // 4 = Benjamin
+
+      //redirect
+      autoSetState();
+      break;
+
+    case 2: //logout
+      loggedIn = 0;
+      shiftSet = 1;
+
+      //redirect
+      autoSetState();
+      break;
+
+    case 3: //sign out
+      loggedIn = 0;
+      shiftSet = 0;
+      userResultIndex = undefined;
+
+      //redirect
+      autoSetState();
+      break;
+
+    default:
+      console.error("backdoor code not recognized");
+      return;
+  }
+
+} //end function
+
+
+//*************************************
+//***** PRINT TO DISPLAY **************
 
 function printTotalState(ul, ur, ll, lr){ //
   console.log("printTotalState called");
@@ -315,7 +450,54 @@ function printDefaultErrorMessage(){
   document.getElementById("ES-L").value = "*** PRESS ** CLEAR ***";
 }//end function
 
-function changeDisplayState(state){
+//*************************************
+//********* PROGRAM STATE *************
+
+
+function autoSetState(){ //sets program state based on conditions
+  console.log("autoSetState() called");
+
+  //this function is used to find where you are in the program and return you to
+  //that state. It was developed as a comeback from CLEAR button push, but I think
+  //it will have several uses.
+
+
+  //check if a user is signed in
+  if(shiftSet == 0){
+    //has user entered a valid ID?
+    if(idFlag == 0){
+      //send to ID prompt
+      console.log("autoSet to signIn() - ID prompt");
+      signIn();
+      return;
+    } else {
+
+      //send to PIN prompt
+      console.log("autoSet to signIn(3) - PIN prompt");
+      signIn(3);
+      return;
+    }
+  }
+
+  //check if the user is logged in
+  if(loggedIn == 0){
+    console.log("autoSet to login()");
+    login();
+    return;
+  }
+
+  //check for checkout status
+
+
+  //scan will be the default value if all other IF tests pass
+  console.log("autoSet to scan()");
+  scan();
+
+
+
+}//end function
+
+function changeDisplayState(state){ //change what display grouping is used
   console.log("changeDisplayState called");
 
   //changeDisplayState() is responsible for changing the display set used to
@@ -338,8 +520,6 @@ function changeDisplayState(state){
   // DS_MESSAGE = 6;
   // DS_LOGIN = 7;
   // DS_OPTION = 8;
-
-
 
   //hide all states to hide
   hideState();
@@ -391,23 +571,38 @@ function changeDisplayState(state){
 
 }//end function
 
-function changeProgramState(state){
+function changeProgramState(state){ //change program state/how buttons functions
   console.log("changeProgramState called");
 
-  //State 1: login
-  //State 2: scanning
-  //State 3: total
-  //State 4: payment
-  //state 5: message
-  //State 6: error
+  //changeProgramState is used to manage what buttons are active during specific
+  //program events and places. Button actions can be modified, or disabled, as needed
+  //depending on what the user it attempting to do
+
+  //not to be confused with display state. A user can be looking at a login screen
+  //but hit the wrong button and the program will change to error state. Thus
+  //the Display state would be DS_LOGIN (7), but the program state would be PS_ERROR (6)
+
+  //DISPLAY state only effects where output is going
+  //Program state is used to manage how button presses are managed
+
+  //Program States
+  // PS_LOGIN = 1;
+  // PS_SCANNING = 2;
+  // PS_TOTAL = 3;
+  // PS_PAYMENT = 4;
+  // PS_MESSAGE = 5;
+  // PS_ERROR = 6;
+  // PS_NEWCART = 7;
 
   if(state > 0 && state < 8){
+    //if change, update history
     if(previousProgramState != currentProgramState){
       previousProgramState = currentProgramState; //update history
-      currentProgramState = state;
     }
+    //update current state
+    currentProgramState = state;
   } else {
-    console.log("ERROR: program state not valid: ", state);
+    console.error("ERROR: program state not valid: ", state);
   }
 
   console.log("Current program State: ", currentProgramState);
@@ -415,8 +610,618 @@ function changeProgramState(state){
 
 }//end function
 
+function login(part, number){ //login to user account
+  console.log("login called");
+  console.trace();
+  //function handles all elements required to log in.
+
+  //login script is called by several different functions, eventListeners.
+  //Paramter "part" allows the script to be responsive and jump past parts already complete by user
+  //Paramter "number" passes in the number collected by the eventListeners
+  //** only needed for [0-9], ENTER and CLEAR are handled by "part"
+
+  //idPass is critical determining location in script since the eventListeners cannot
+  //** distinguish where in the script it should send a user
+  //** idPass must be set outside of function in the main script
+  //idPass = true ----- id was entered correctly and script should be asking for PIN information
+  //idPass = false ---- id hasn't been confirmed as correct -- script is asking for ID information
+
+  // -- DEFAULT --
+  //Part 0 - called from main - no parameters needed
+
+  // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
+  //Part 1 - called by [0-9] eventListener
+  //Part 2 - called by ENTER eventListener
+  //Part 3 - called by CLEAR eventListener
+
+  // -- ID SCRIPTS -- output user input, checks input against user profile
+  //part 4 - PRINT ID display
+  //part 5 - print user input for ID
+  //part 6 - check for ID match
+  //part 7 - clear ID input
+
+  // -- PIN SCRIPTS --
+  //part 8 - PRINT PIN display
+  //part 9 - print user input for PIN
+  //part 10 - check for PIN match
+  //part 11 - clear PIN input
+
+
+  //create optional parameters
+  if(part === undefined){
+    //this should only be used by call from MAIN script
+    part = 0;
+    idPass = 0;
+  }
+
+  if(number === undefined){
+    number = 0;
+  }
+
+  if(loggedIn == 0){
+    switch (part) {
+      case 0: //default call
+        //update program state
+        //changeProgramState(PS_LOGIN);
+        changeProgramState(1);
+        //changeDisplayState(DS_LOGIN);
+        login(4);
+        break;
+    //*****************************************************
+      case 1: //called by [0-9] eventListener
+        if(idPass == 0){ //if ID confirmed
+          //print ID user input
+          login(5, number);
+          break;
+        } else {
+          //print PIN user input
+          login(9, number);
+          break;
+        }
+    //*****************************************************
+      case 2: //called by ENTER eventListener
+        if(idPass == 0){ //if ID confirmed
+          //redirect to CHECK ID
+          login(6);
+          break;
+        } else {
+          //redirect to CHECK PIN
+          login(10);
+          break;
+        }
+    //*****************************************************
+      case 3: //called by CLEAR eventListener
+
+        if(idPass == 0){ //if ID confirmed
+          //redirect to ID clear
+          login(7);
+          break;
+        } else {
+          //redirect to PIN clear
+          login(11);
+          break;
+        }
+    //*****************************************************
+      case 4: //PRINT ID display
+        xin1 = "Cashier: " + userProfiles[userResultIndex].name;
+        xin2 = "Login: ";
+        xin3 = "---";
+
+        printLoginState(xin1, xin2, xin3);
+        break;
+    //*****************************************************
+      case 5: //PRINT user input for ID
+
+        //replace default "---" with numbers
+        //if no hyphen, then forbid further input
+        xin = document.getElementById("LS-LR").value;
+        xin += number; //number passed in from eventListener (screen click)
+        searchResults = xin.search("-");
+        if(searchResults == 0){ //hyphen found, input less than 3
+          //replace string
+          console.log("Original value: ", xin);
+          xinMod = xin.substring(1,4);
+          console.log("Corrected value: ", xinMod);
+          document.getElementById("LS-LR").value = xinMod;
+        } else { //no hypen found
+          console.warn("Input too long");
+          printErrorState("Input Too Long", "Press Clear");
+        }
+        break;
+    //*****************************************************
+      case 6: //check for ID match
+
+        //remove all hyphens then check for match with user ID
+        xin = document.getElementById("LS-LR").value;
+        xinMod = xin.replace(/-/g,"");
+        //console.log("Original: " + xin + " Corrected: " + xinMod);
+
+        if(xinMod == userProfiles[userResultIndex].id){
+          //input matches id
+          console.log("ID correct");
+          idPass = 1;
+          //redirect to -- PRINT PIN display
+          login(8);
+        } else {
+          console.warn("ID wrong");
+          //Print error message
+          printErrorState("ID Incorrect", "Press Clear");
+        }
+        break;
+    //*****************************************************
+      case 7: //clear ID input
+
+        //CASE 7 isn't really needed now, i'm including it here in case I need to
+        //** add scripting to the clear button in future
+        login(4);
+        break;
+    //*****************************************************
+      case 8: //print PIN display
+
+        //initialize PIN display
+        xin1 = "Cashier: " + userProfiles[userResultIndex].name;
+        xin2 = "PIN: ";
+        xin3 = "----";
+
+        printLoginState(xin1, xin2, xin3);
+        break;
+    //*****************************************************
+      case 9: //print user input for PIN
+
+        //replace default "----" with numbers
+        //if no hyphen, then forbid further input
+        xin = document.getElementById("LS-LR").value;
+        xin += number; //number passed in from eventListener (screen click)
+        searchResults = xin.search("-");
+        if(searchResults == 0){ //hyphen found, input less than 3
+          //replace string
+          console.log("Original value: ", xin);
+          xinMod = xin.substring(1,5);
+          console.log("Corrected value: ", xinMod);
+          document.getElementById("LS-LR").value = xinMod;
+        } else { //no hypen found
+          console.warn("Input too long");
+          printErrorState("Input Too Long", "Press Clear");
+        }
+        break;
+    //*****************************************************
+      case 10: //check for PIN match
+
+        //remove any hyphens
+        xin = document.getElementById("LS-LR").value;
+        xinMod = xin.replace(/-/g,"");
+        console.log("Original: " + xin + " Corrected: " + xinMod);
+
+        if(xinMod == userProfiles[userResultIndex].pin){
+          //input matches id
+          console.log("PIN correct");
+          loggedIn = 1;
+          scan();
+        } else {
+          console.warn("PIN wrong");
+          idPass = 0; //reset to ID check
+          printErrorState("PIN Incorrect", "Press Clear");
+        }
+        break;
+    //*****************************************************
+      case 11: //clear PIN input
+        //CASE 11 isn't really needed now, i'm including it here in case I need to
+        //** add scripting to the clear button in future
+
+        login(8);
+        break;
+    //*****************************************************
+      default: //default used for debugging
+        console.error("ERROR: \"Part\" parameter for function Login no match");
+        break;
+    } //end switch
+  } else {
+    console.warn("login called, but user already logged in");
+    scan();
+  }
+}//end function
+
+function logout(){ //log out of user account
+  console.log("logout called");
+
+  //function logs out a user by resetting loggedIn variable
+  //autoSetState() will then redirect user to login function
+
+  loggedIn = 0; //log out
+  autoSetState(); //reset state
+} // End function
+
+//idFlag = 0; //flag used for tracking ID input vs PIN input
+//userResultIndex = undefined; //session user data is saved here
+//searchResults = undefined; //used for display output
+
+
+function signIn(part, number){
+  console.log("signIn called");
+
+  //function handles the first login for the day
+
+  //set temp local variable
+  let userInput = document.getElementById("LS-LR").value;
+  let searchResults = undefined; //used for display output
+
+  //set defaults
+  if(part === undefined){
+    part = 0;
+  }
+  if(number === undefined){
+    //value useful for debugging
+    number = -100;
+  }
+
+  switch (part) {
+    case 0: //default call - initialize ID prompt display
+      //confirm current conditions
+      //program shouldn't be here if these conditions aren't already set, but this
+      //check is more for accurate debuggin and error messaging
+      if(shiftSet == 0 && loggedIn == 0){
+        //initialize program for login
+        changeProgramState(PS_LOGIN);
+        printLoginState("Login", "ID: ", "---");
+        break;
+      } else if (loggedIn == 1){
+        //this shouldn't happen, but if it does...
+        console.error("shift not set, but user logged in");
+        return;
+      } else {
+        console.error("shift is set, cannot run signIn()");
+        return;
+      }
+
+
+    //***************************************************
+    case 1: // [0-9] eventListeners - collect ID
+      //replace default "---" with numbers
+      userInput += number; //number passed in from eventListener (screen click)
+
+      //search for hyphens in string
+      searchResults = userInput.search("-");
+
+      if(searchResults == 0){ //hyphen found
+        //update string
+        userInput = userInput.substring(1,4);
+        document.getElementById("LS-LR").value = userInput;
+      } else { //no hypen found
+        console.warn("ID too long");
+        printErrorState("ID Too Long", "Press Clear");
+        changeProgramState(PS_ERROR);
+        //from here... when user clicks clear, clear (from error state EL)
+        //--calls autoSetState(), autoSetState() should see that shiftSet is not
+        //--set, and sends user to signIn(), which comes full circle back here
+      }
+      break;
+
+    //***************************************************
+    case 2: // ENTER eventListeners - confirm ID
+
+      //before running searchUsers() remove hyphens
+      userInput = userInput.replace(/-/g,"");
+
+      //search users for match - userResultIndex will be used again in case 5 to confirm PIN
+      userResultIndex = searchUsers(userInput);
+
+      //check for no-match before check for match
+      //this prevents errors and allows display out message to user
+      if(userResultIndex == -1){ //-1 = no match found
+        console.warn("ID results - no match found");
+
+        //print error message to diplay
+        printErrorState("ID Not Found", "Press Clear");
+
+        //change state
+        changeProgramState(PS_ERROR);
+        return;
+      }
+
+      if(userResultIndex == -2){
+        console.error("Unexpected error - ID match check");
+
+        //Print error message
+        printErrorState("Fatal Error - 117", "Call Helpdesk"); //throw error code
+
+        //change state
+        changeProgramState(PS_ERROR);
+        return;
+      }
+
+      //check for match
+      if(userInput == userProfiles[userResultIndex].id){
+        console.log("ID correct");
+
+        //input matches id
+        idFlag = 1; //set flag
+
+        //redirect to PIN prompt
+        signIn(3);
+        return;
+      }
+      break;
+
+    //***************************************************
+    case 3: // PIN Prompt - initialize display
+      //confirm current conditions
+      //program shouldn't be here if these conditions aren't already set, but this
+      //check is more for accurate debuggin and error messaging
+
+      if(idFlag == 1){//confirm that ID has been entered correctly
+        //confirm current conditions
+        if(shiftSet == 0 && loggedIn == 0){
+          console.log("signIn(3) - initialize PIN display");
+          //initialize program for login
+          changeProgramState(PS_LOGIN);
+          printLoginState("Login", "PIN: ", "----");
+          return;
+        } else if (loggedIn == 1){
+          //this shouldn't happen, but if it does...
+          console.error("shift not set, but user logged in");
+          return;
+        } else {
+          //this shouldn't happen, but if it does...
+          console.error("shift is set, cannot run signIn()");
+          return;
+        }
+      } else {
+        //redirect and find correct state
+        console.error("attempted to process PIN for signIn, but ID not set");
+        autoSetState();
+      }
+      break;
+
+    //***************************************************
+    case 4://[0-9] eventListeners - collect PIN
+      //replace default "----" with numbers
+      userInput += number; //number passed in from eventListener (screen click)
+      console.warn("userInput before: ", userInput);
+      //search for hyphens in string
+      searchResults = userInput.search("-");
+
+      if(searchResults == 0){ //hyphen found
+        //update string
+        userInput = userInput.substring(1,5);
+        console.warn("userInput after: ", userInput);
+        document.getElementById("LS-LR").value = userInput;
+      } else { //no hypen found
+        console.warn("PIN too long");
+        printErrorState("PIN Too Long", "Press Clear");
+        changeProgramState(PS_ERROR);
+        //from here... when user clicks clear, clear (from error state EL)
+        //--calls autoSetState(), autoSetState() should see that shiftSet is not
+        //--set, and sends user to signIn(), which comes full circle back here
+      }
+
+
+      break;
+
+    //***************************************************
+    case 5: // ENTER eventListeners - confirm ID and PIN match
+
+      //before running searchUsers() remove hyphens
+      userInput = userInput.replace(/-/g,"");
+
+      //confirm input
+      if(userInput == ""){
+        console.warn("no valid user input");
+        printErrorState("Invalid Entry", "Press Clear");
+        changeProgramState(PS_ERROR);
+        return;
+      }
+
+      //confirm PIN with saved user profile from ID search
+      if(userProfiles[userResultIndex].pin == userInput){//is PIN correct?
+        //set signIn flag and loggedIn flag
+        shiftSet = 1;
+        loggedIn = 1;
+
+        //redirect
+        autoSetState();
+        return;
+      } else {
+        console.warn("PIN incorrect");
+        idFlag = 0; //reset pin status
+        userResultIndex = undefined; //reset saved user profile
+        printErrorState("PIN Incorrect", "Press Clear");
+        changeProgramState(PS_ERROR);
+        return;
+      }
+      break;
+
+    //***************************************************
+    default:
+      console.warn("default trigger, parameter not valid");
+      return;
+  }
+
+
+}//end function
+
+function signOut(){
+  console.log("signOut called");
+
+  //signOut ends a shiftSet cycle
+  //called by code 84
+
+  //reset variables
+  shiftSet = 0;
+  loggedIn = 0;
+  userResultIndex = undefined;
+
+  //eventually need to add money data export function
+  //will need
+
+  //redirect
+  autoSetState();
+
+}//end function
+
+function scan(part, item){ //scan items
+  console.log("scan() called");
+
+  //scan() handles the logic to manually key in items to be scanned. It adds items
+  //to printer, builds the cart, and keeps tab of a subtotal
+
+  if(part === undefined){
+    //do nothing here, the logic for this part kicks in below the else statement
+
+
+  } else {
+    //if part is defined, run switch
+    switch (part) {
+      case 1: //called by [0-9] Event listener
+        //used to build number
+        buildScanNumber(item);
+        return;
+      case 2: // called by CLEAR
+        //clear build number then reset state
+        userNumber = undefined;
+        autoSetState();
+        return;
+      //*******************************************************
+      case 3: // called by ENTER
+
+        //check if user wants to duplicate last item
+        if(userNumber === undefined){
+          //duplicate lastItem
+          if(itemCount < COPY_LIMIT || scannedAgain == 1){ //limit to 5
+            if(lastItem !== undefined){ //double check that number is valid
+              userNumber = data[lastItem].UPC;
+            } else {
+              //debugging
+              console.log("ERROR: could not duplicate - number not recognized");
+              return;
+            }
+          } else {
+            //cannot exceed 5 copies
+            changeProgramState(6); //error
+            printErrorState("Limit to 5", "*** PRESS ** CLEAR ***");
+            return;
+          }
+        } else {
+          //user has defined a number
+          //we do not know if the number is a NLU, Smart code, or UPC
+          //we need to run search to make an index comparison with lastItem
+          //run search for food item based on userNumber
+          foodSearchResult = searchFood(userNumber);
+
+          //if itemCount is greater than 1 AND userNumber result was the same as lastItem,
+          //then user intends more than 5 sequencial copies, do not reset itemCount
+          if(itemCount > 1 && foodSearchResult === lastItem){
+            scannedAgain = 1;
+          } else {
+            //new item scanned - reset count
+            itemCount = 1;
+            scannedAgain = 0;
+          }
+        }
+
+        //run search for food item based on userNumber
+        //let foodSearchResult = searchFood(userNumber);
+
+        //confirm search results
+        //check for ITEM NOT FOUND
+        if(foodSearchResult == 0){ //return value defined in searchFood -- 0 = not found
+          changeProgramState(6); //error
+          printErrorState("Item Not Found", "*** PRESS ** CLEAR ***");
+          break;
+        }
+
+        //check for NUMBER ENTERED WRONG
+        if(foodSearchResult == -1){ //return value defined in searchFood -- -1 = number not proper format
+          changeProgramState(6); //error
+          printErrorState("Invalid Item Number", "*** PRESS ** CLEAR ***");
+          break;
+        }
+
+        //set lastItem
+        if(lastItem != foodSearchResult){ //if the last item is NOT the same as the current item....
+          lastItem = foodSearchResult;
+          itemCount = 1; //setting itemCount equal to 1 is reset
+        } else {
+          //if lastItem == index
+          //**this means that index is repeating, and a count is needed
+          //**therefor increment counter
+          itemCount++;
+        }
+
+        //check if weighted
+        if(data[foodSearchResult].is_weighed == 1){
+          myWeight = randomWeight();
+        } else {
+          myWeight = 0;
+          printWeightToDisplay(0.00);
+        }
+
+        //check if age restriction
+        if(data[foodSearchResult].ID_Verification == 1){
+          checkID = 1;
+        }
+
+
+        //Check if on sale, then add Full/Sale price to subtotal
+        if(data[foodSearchResult].Sale_Active == 1){ //1 = true -- true = on sale
+          addToSubTotal(data[foodSearchResult].Sale_Price);
+          thePrice = data[foodSearchResult].Sale_Price;
+        } else {
+          addToSubTotal(data[foodSearchResult].Full_Price);
+          thePrice = data[foodSearchResult].Full_Price;
+        }
+
+        //foodItem -- data[index].Description
+        //thePrice -- the price of the item
+        //itemCount -- count of sequencial same items
+        //subTotal -- running subtotal of price
+
+        //add food to shopping cart
+        buildCartArray(cartId, foodSearchResult, newItemQty, myWeight, false);
+
+        //update display
+        printScanningState(data[foodSearchResult].Description, thePrice, itemCount, subTotal);
+
+        //update/reset tracking variables
+        userNumber = undefined;
+        foodSearchResult == undefined;
+        newCart = 1; //no longer a new cart
+        changeProgramState(2); //scanning state
+        autoSetState(); //reset state
+
+
+        break;
+      //*******************************************************
+      default:
+        console.log("ERROR: default switch triggered;");
+        break;
+    }//end switch
+  } //end if/else part === undefined
+
+
+  //if new cart, change program state
+  if(newCart == 0){
+    console.log("UPDATE: newcart triggered");
+    changeProgramState(PS_NEWCART);
+    //only notify user when starting newCart
+    let notification = messageBanner(); //check for notifications
+    printErrorState(notification, "Ready Scan Item");
+    return;
+  } else {
+    console.log("UPDATE: current cart triggered");
+    changeProgramState(PS_SCANNING); //set to scanning state
+    printScanningState(data[lastItem].Description, thePrice, itemCount, subTotal);
+  }
+
+
+}//end function
+
+
+//************************************
+//********* WALLET STUFF *************
+
+
 function card(userSetType, userSetStatus, userSetBalance){
-  console.log("card called");
+  //console.log("card called");
 
   //card is intended to randomly create a new card based on a set criteria
   //Giftcard type has limitations of a max balance of $200, and unless manually set, it cannot be any status but active
@@ -566,10 +1371,14 @@ function printWallet(arrayIn){
 
 }//end function
 
-function randomWeight(){
+
+//************************************
+//*********** SCALE STUFF ************
+
+
+function randomWeight(){ // create randome number for weight
   console.log("randomWeight called");
 
-  // **DOCUMENTATION**
   //this function generates a random weight between 0lbs and 15lbs
 
   //set variable
@@ -582,7 +1391,7 @@ function randomWeight(){
   return myWeight;
 }//end function
 
-function printWeightToDisplay(weightIn){
+function printWeightToDisplay(weightIn){ //print weight to display
   console.log("printWeightToDisplay called");
 
   // **DOCUMENTATION**
@@ -592,7 +1401,7 @@ function printWeightToDisplay(weightIn){
 
 }//end function
 
-function randomScanItem(){
+function randomScanItem(){ //use space bar to scan random item
   console.log("randomScanItem called");
   //this function includes an eventListener for space bar press
   //when space bar is pressed, it will simulute scanning a random item
@@ -601,223 +1410,10 @@ function randomScanItem(){
 
 }//end function
 
-function login(part, number){
-  console.log("login called");
-  //function handles all elements required to log in.
 
-  //login script is called by several different functions, eventListeners.
-  //Paramter "part" allows the script to be responsive and jump past parts already complete by user
-  //Paramter "number" passes in the number collected by the eventListeners
-  //** only needed for [0-9], ENTER and CLEAR are handled by "part"
+//************************************
+//********* MONEY MATH ***************
 
-  //idPass is critical determining location in script since the eventListeners cannot
-  //** distinguish where in the script it should send a user
-  //** idPass must be set outside of function in the main script
-  //idPass = true ----- id was entered correctly and script should be asking for PIN information
-  //idPass = false ---- id hasn't been confirmed as correct -- script is asking for ID information
-
-  // -- DEFAULT --
-  //Part 0 - called from main - no parameters needed
-
-  // -- REDIRECTS -- handle redirects from outside function calls based on idPass condition
-  //Part 1 - called by [0-9] eventListener
-  //Part 2 - called by ENTER eventListener
-  //Part 3 - called by CLEAR eventListener
-
-  // -- ID SCRIPTS -- output user input, checks input against user profile
-  //part 4 - PRINT ID display
-  //part 5 - print user input for ID
-  //part 6 - check for ID match
-  //part 7 - clear ID input
-
-  // -- PIN SCRIPTS --
-  //part 8 - PRINT PIN display
-  //part 9 - print user input for PIN
-  //part 10 - check for PIN match
-  //part 11 - clear PIN input
-
-
-  //create optional parameters
-  if(part === undefined){
-    //this should only be used by call from MAIN script
-    part = 0;
-    idPass = 0;
-  }
-
-  if(number === undefined){
-    number = 0;
-  }
-
-  if(loggedIn == 0){
-    switch (part) {
-      case 0: //default call
-        //update program state
-        changeProgramState(PS_LOGIN);
-        changeDisplayState(DS_LOGIN);
-        login(4);
-        break;
-    //*****************************************************
-      case 1: //called by [0-9] eventListener
-        if(idPass == 0){ //if ID confirmed
-          //print ID user input
-          login(5, number);
-          break;
-        } else {
-          //print PIN user input
-          login(9, number);
-          break;
-        }
-    //*****************************************************
-      case 2: //called by ENTER eventListener
-        if(idPass == 0){ //if ID confirmed
-          //redirect to CHECK ID
-          login(6);
-          break;
-        } else {
-          //redirect to CHECK PIN
-          login(10);
-          break;
-        }
-    //*****************************************************
-      case 3: //called by CLEAR eventListener
-
-        if(idPass == 0){ //if ID confirmed
-          //redirect to ID clear
-          login(7);
-          break;
-        } else {
-          //redirect to PIN clear
-          login(11);
-          break;
-        }
-    //*****************************************************
-      case 4: //PRINT ID display
-        xin1 = "Cashier: " + user.name;
-        xin2 = "Login: ";
-        xin3 = "---";
-
-        printLoginState(xin1, xin2, xin3);
-        break;
-    //*****************************************************
-      case 5: //PRINT user input for ID
-
-        //replace default "---" with numbers
-        //if no hyphen, then forbid further input
-        xin = document.getElementById("LS-LR").value;
-        xin += number; //number passed in from eventListener (screen click)
-        searchResults = xin.search("-");
-        if(searchResults == 0){ //hyphen found, input less than 3
-          //replace string
-          console.log("Original value: ", xin);
-          xinMod = xin.substring(1,4);
-          console.log("Corrected value: ", xinMod);
-          document.getElementById("LS-LR").value = xinMod;
-        } else { //no hypen found
-          console.log("Input too long");
-          printErrorState("Input Too Long", "Press Clear");
-        }
-        break;
-    //*****************************************************
-      case 6: //check for ID match
-
-        //remove all hyphens then check for match with user ID
-        xin = document.getElementById("LS-LR").value;
-        xinMod = xin.replace(/-/g,"");
-        //console.log("Original: " + xin + " Corrected: " + xinMod);
-
-        if(xinMod == user.id){
-          //input matches id
-          console.log("ID correct");
-          idPass = 1;
-          //redirect to -- PRINT PIN display
-          login(8);
-        } else {
-          console.log("ID wrong");
-          //Print error message
-          printErrorState("ID Incorrect", "Press Clear");
-        }
-        break;
-    //*****************************************************
-      case 7: //clear ID input
-
-        //CASE 7 isn't really needed now, i'm including it here in case I need to
-        //** add scripting to the clear button in future
-        login(4);
-        break;
-    //*****************************************************
-      case 8: //print PIN display
-
-        //initialize PIN display
-        xin1 = "Cashier: " + user.name;
-        xin2 = "PIN: ";
-        xin3 = "----";
-
-        printLoginState(xin1, xin2, xin3);
-        break;
-    //*****************************************************
-      case 9: //print user input for PIN
-
-        //replace default "----" with numbers
-        //if no hyphen, then forbid further input
-        xin = document.getElementById("LS-LR").value;
-        xin += number; //number passed in from eventListener (screen click)
-        searchResults = xin.search("-");
-        if(searchResults == 0){ //hyphen found, input less than 3
-          //replace string
-          console.log("Original value: ", xin);
-          xinMod = xin.substring(1,5);
-          console.log("Corrected value: ", xinMod);
-          document.getElementById("LS-LR").value = xinMod;
-        } else { //no hypen found
-          console.log("Input too long");
-          printErrorState("Input Too Long", "Press Clear");
-        }
-          break;
-    //*****************************************************
-      case 10: //check for PIN match
-
-        //remove any hyphens
-        xin = document.getElementById("LS-LR").value;
-        xinMod = xin.replace(/-/g,"");
-        console.log("Original: " + xin + " Corrected: " + xinMod);
-
-        if(xinMod == user.pin){
-          //input matches id
-          console.log("PIN correct");
-          loggedIn = 1;
-          scan();
-        } else {
-          console.log("PIN wrong");
-          idPass = 0; //reset to ID check
-          printErrorState("PIN Incorrect", "Press Clear");
-        }
-        break;
-    //*****************************************************
-      case 11: //clear PIN input
-        //CASE 11 isn't really needed now, i'm including it here in case I need to
-        //** add scripting to the clear button in future
-
-        login(8);
-        break;
-    //*****************************************************
-      default: //default used for debugging
-        console.log("ERROR: \"Part\" parameter for function Login no match");
-        break;
-    } //end switch
-  } else {
-    console.log("login called, but user already logged in");
-  }
-}//end function
-
-function logout(){
-  console.log("logout called");
-
-  //function logs out a user by resetting loggedIn variable
-  //autoSetState() will then redirect user to login function
-
-  loggedIn = 0; //log out
-  autoSetState(); //reset state
-}
 
 function addMoney(xin, yin){
   console.log("addMoney called");
@@ -839,13 +1435,6 @@ function addToSubTotal(xin){
     console.log("debug 2");
   }
 }//end function
-
-// function uniquePurchase(itemIndex, itemQuantity, itemWeight, itemVoided){
-//   this.index = itemIndex;
-//   this.quantity = itemQuantity;
-//   this.weight = itemWeight;
-//   this.void = itemVoided; //true = void, false = not void
-// }//end function
 
 function buildCartArray(cartId, itemIndex, itemQuantity, itemWeight, itemVoided){
   console.log("buildCartArray called");
@@ -890,6 +1479,31 @@ function buildCartArray(cartId, itemIndex, itemQuantity, itemWeight, itemVoided)
 
 }//end function
 
+
+//***********************************
+//********* PRINTER FUNCTIONS *******
+
+
+function initializePrinter(){
+  console.log("initializePrinter called");
+
+  //function is used on start up to clear static HTML and print header to printer
+
+  //generate header
+  output = "";
+  output += "<p class='top-print'>ALDI<br/>";
+  output += "Store #" + store.number + "<br/>";
+  output += store.address + "<br/>";
+  output += store.website + "<br/>";
+  //output += "Your cashier today was " + userProfiles[userResultIndex].name;
+  output += "</p>";
+  output += "<table class='shopping-items'>";
+
+  //print to display
+  document.getElementById("printer").innerHTML = output;
+
+}
+
 function printerMain(arrayIn){
   console.log("printerMain called");
   console.log(arrayIn);
@@ -904,7 +1518,7 @@ function printerMain(arrayIn){
   output += "Store #" + store.number + "<br/>";
   output += store.address + "<br/>";
   output += store.website + "<br/>";
-  output += "Your cashier today was " + user.name;
+  output += "Your cashier today was " + userProfiles[userResultIndex].name;
   output += "</p>";
   output += "<table class='shopping-items'>";
 
@@ -954,6 +1568,7 @@ function printerMain(arrayIn){
     }
   }
 
+  //print to display
   document.getElementById("printer").innerHTML = output;
 
 }//end function
@@ -1288,571 +1903,198 @@ function updatePrinterPayment(){
 
 }//end function
 
-userNumber = undefined;
+//**************************************
+//********** BUTTON EVENTLISTENERS *****
+//**** AND SPECIFIC STATE FUNCTIONS ****
 
-function buildScanNumber(number){
-  console.log("buildNumber called");
-
-  //buildNumber is used to build the number as user enters a number
-
-
-  //update variable
-  if(userNumber === undefined){
-    userNumber = number;
-  } else {
-    //assume userNumber is part way through build
-    userNumber += number; //add number on
-  }
-
-  console.log("userNumber: ", userNumber);
-
-  //Print number to display
-  switch (currentProgramState) {
-    case 1: //login
-
-      break;
-    case 2: //scanning
-      printScanningKeyinState(data[lastItem].Description, userNumber);
-      break;
-    case 3: //total
-
-      break;
-    case 4: //payment
-
-      break;
-    case 5: //message
-      //Message is unique, unlikely this will be used here
-      break;
-    case 6: //error
-      //will never appear here
-      break;
-    case 7: //new cart
-      let notification = messageBanner();
-      printScanningKeyinState(notification, userNumber);
-      break;
-    default: //debugging message
-      console.log("currentDisplayState error - unknown");
-      break;
-
-  }//end switch
-
-
-}//end function
-
-newCart = 0; //if nothing in cart
-newItemQty = 0; //If qty is used
-cartId = 1; //start
-itemCount = 1; //counts sequential items
-lastItem = undefined; //used to count sequential items, compares current item to last item
-thePrice = 0; //price of item
-subTotal = 0; //running subtotal of order
-checkID = 0; //change to 1 if an item requires ID verification
-COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
-scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
-
-function scan(part, item){
-  console.log("scan() called");
-
-  if(part === undefined){
-    //do nothing
-  } else {
-    //if part is defined, run switch
-    switch (part) {
-      case 0: //do nothing
-        break;
-      case 1: //called by [0-9] Event listener
-        //used to build number
-        buildScanNumber(item);
-        return;
-      case 2: // called by CLEAR
-        //clear build number then reset state
-        userNumber = undefined;
-        autoSetState();
-        return;
-      //*******************************************************
-      case 3: // called by ENTER
-
-        //check if user wants to duplicate last item
-        if(userNumber === undefined){
-          //duplicate lastItem
-          if(itemCount < COPY_LIMIT || scannedAgain == 1){ //limit to 5
-            if(lastItem !== undefined){ //double check that number is valid
-              userNumber = data[lastItem].UPC;
-            } else {
-              //debugging
-              console.log("ERROR: could not duplicate - number not recognized");
-              return;
-            }
-          } else {
-            //cannot exceed 5 copies
-            changeProgramState(6); //error
-            printErrorState("Limit to 5", "*** PRESS ** CLEAR ***");
-            return;
-          }
-        } else {
-          //user has defined a number
-          //we do not know if the number is a NLU, Smart code, or UPC
-          //we need to run search to make an index comparison with lastItem
-          //run search for food item based on userNumber
-          foodSearchResult = searchFood(userNumber);
-
-          //if itemCount is greater than 1 AND userNumber result was the same as lastItem,
-          //then user intends more than 5 sequencial copies, do not reset itemCount
-          if(itemCount > 1 && foodSearchResult === lastItem){
-            scannedAgain = 1;
-          } else {
-            //new item scanned - reset count
-            itemCount = 1;
-            scannedAgain = 0;
-          }
-        }
-
-        //run search for food item based on userNumber
-        //let foodSearchResult = searchFood(userNumber);
-
-        //confirm search results
-        //check for ITEM NOT FOUND
-        if(foodSearchResult == 0){ //return value defined in searchFood -- 0 = not found
-          changeProgramState(6); //error
-          printErrorState("Item Not Found", "*** PRESS ** CLEAR ***");
-          break;
-        }
-
-        //check for NUMBER ENTERED WRONG
-        if(foodSearchResult == -1){ //return value defined in searchFood -- -1 = number not proper format
-          changeProgramState(6); //error
-          printErrorState("Invalid Item Number", "*** PRESS ** CLEAR ***");
-          break;
-        }
-
-        //set lastItem
-        if(lastItem != foodSearchResult){ //if the last item is NOT the same as the current item....
-          lastItem = foodSearchResult;
-          itemCount = 1; //setting itemCount equal to 1 is reset
-        } else {
-          //if lastItem == index
-          //**this means that index is repeating, and a count is needed
-          //**therefor increment counter
-          itemCount++;
-        }
-
-        //check if weighted
-        if(data[foodSearchResult].is_weighed == 1){
-          myWeight = randomWeight();
-        } else {
-          myWeight = 0;
-          printWeightToDisplay(0.00);
-        }
-
-        //check if age restriction
-        if(data[foodSearchResult].ID_Verification == 1){
-          checkID = 1;
-        }
-
-
-        //Check if on sale, then add Full/Sale price to subtotal
-        if(data[foodSearchResult].Sale_Active == 1){ //1 = true -- true = on sale
-          addToSubTotal(data[foodSearchResult].Sale_Price);
-          thePrice = data[foodSearchResult].Sale_Price;
-        } else {
-          addToSubTotal(data[foodSearchResult].Full_Price);
-          thePrice = data[foodSearchResult].Full_Price;
-        }
-
-
-        //foodItem -- data[index].Description
-        //thePrice -- the price of the item
-        //itemCount -- count of sequencial same items
-        //subTotal -- running subtotal of price
-
-
-        //add food to shopping cart
-        buildCartArray(cartId, foodSearchResult, newItemQty, myWeight, false);
-
-        //update display
-        printScanningState(data[foodSearchResult].Description, thePrice, itemCount, subTotal);
-
-        //update/reset tracking variables
-        userNumber = undefined;
-        foodSearchResult == undefined;
-        newCart = 1; //no longer a new cart
-        changeProgramState(2); //scanning state
-        autoSetState(); //reset state
-
-
-        break;
-      //*******************************************************
-      default:
-        console.log("ERROR: default switch triggered;");
-    }//end switch
-  }
-
-  //
-  //
-  // if(item === undefined){
-  //   item = 0;
-  // }
-
-  //if new cart, change program state
-  if(newCart == 0){
-    console.log("UPDATE: newcart triggered");
-    changeProgramState(7);
-    //only notify user when starting newCart
-    let notification = messageBanner(); //check for notifications
-    printErrorState(notification, "Ready Scan Item");
-    return;
-  } else {
-    console.log("UPDATE: current cart triggered");
-    changeProgramState(2); //set to scanning state
-    printScanningState(data[lastItem].Description, thePrice, itemCount, subTotal);
-  }
-
-  //assuming NOT a new cart...
-
-  // switch (part) {
-  //   case 0: //default display
-  //     changeProgramState(2);
-  //     printErrorState("Check Under Cart", "Ready Scan Item");
-  //     break;
-  //   //*****************************************************
-  //   case 1: //called by [0-9] eventListener
-  //
-  //     if(firstItem == 0){ //nothing has been scanned yet
-  //         scan(5 , item);
-  //         break;
-  //     }
-  //
-  //     if(keyinStateChange == 0){ //user has pressed button first time
-  //       scan(4, item);
-  //     } else { //user is adding additional button clicks
-  //       scan(6, item);
-  //     }
-  //     break;
-  //   //*****************************************************
-  //   case 2: //called by ENTER eventListener
-  //
-  //     //In scan mode, ENTER can do two things
-  //     //If an item is being manually keyed in, it activates search function
-  //     //If ENTER is pressed by itself, it adds the last added item again to the order
-  //     //If ENTER is pressed with no user input AND no previous scanned item, print error
-  //
-  //     if(keyinStateChange == 0){ //if user has NOT keyed in number
-  //         if(firstItem == 0){ //if nothing has been scanned yet...
-  //           changeProgramState(6); //error state
-  //           printDefaultErrorMessage();
-  //         } else { //duplicate last item
-  //           scan(7);
-  //         }
-  //     } else {
-  //       scan(7); //submit number for search
-  //     }
-  //     break;
-  //   //*****************************************************
-  //   case 3: //called by CLEAR eventListener
-  //     if(keyinStateChange == 0){//if user has NOT keyed in number
-  //       //do nothing on CLEAR
-  //       //eventually activate error beep sound
-  //     } else {
-  //         if(lastItem == 0){ //if nothing has been scanned
-  //             scan(0); //return to first screen
-  //         } else {//if something has already been scanned...
-  //             //show last scanned item
-  //             document.getElementById("SKS-L").value = data[lastItem].UPC; // resets the value after a user input is cleared --- used to keep the lastItem history relavant
-  //             //there is a bug on 747 -- the value entered is not equal to what lastItem should be
-  //             //lastItem is the array index, while last searched value could be anything
-  //             printScanningState(data[lastItem].Description, thePrice, itemCount, subTotal);
-  //         }
-  //     }
-  //     break;
-  //   //*****************************************************
-  //   case 4: //print keyin screen
-  //     printScanningKeyinState(data[lastItem].Description, item);
-  //     keyinStateChange = 1; //used by sorting
-  //     break;
-  //   //*****************************************************
-  //   case 5: //print keyin display -- first item in transaction
-  //     printScanningKeyinState("Check Under Cart", item);
-  //     keyinStateChange = 1; //used by sorting
-  //     firstItem = 1; //this prevents CASE 5 from being called again during transaciton
-  //     break;
-  //   //*****************************************************
-  //   case 6: //print user input for keyin screen
-  //     xin = document.getElementById("SKS-L").value;
-  //     xin += item;
-  //     document.getElementById("SKS-L").value = xin;
-  //     break;
-  //   //*****************************************************
-  //   case 7: //submit number - search for results
-  //     item = document.getElementById("SKS-L").value;
-  //     index = searchFood(item);
-  //
-  //     //check for ITEM NOT FOUND
-  //     if(index == 0){ //return value defined in searchFood -- 0 = not found
-  //       changeProgramState(6); //error
-  //       printErrorState("Item Not Found", "*** PRESS ** CLEAR ***");
-  //       keyinStateChange = 0; //reset
-  //       break;
-  //     }
-  //
-  //     //check for NUMBER ENTERED WRONG
-  //     if(index == -1){ //return value defined in searchFood -- -1 = number not proper format
-  //       changeProgramState(6); //error
-  //       printErrorState("Invalid Item Number", "*** PRESS ** CLEAR ***");
-  //       keyinStateChange = 0; //reset
-  //       break;
-  //     }
-  //
-  //     //set lastItem
-  //     if(lastItem != index){ //if the last item is NOT the same as the current item....
-  //       lastItem = index;
-  //       itemCount = 1; //setting itemCount equal to 1 is reset
-  //     } else {
-  //       //if lastItem == index
-  //       //**this means that index is repeating, and a count is needed
-  //       //**therefor increment counter
-  //       itemCount++;
-  //     }
-  //
-  //     //check for weight info here...
-  //
-  //     //check for id here...
-  //
-  //     //needsId is the variable
-  //
-  //     //Check if on sale, then add Full/Sale price to subtotal
-  //     if(data[index].Sale_Active == 1){ //1 = true -- true = on sale
-  //       addToSubTotal(data[index].Sale_Price);
-  //       thePrice = data[index].Sale_Price;
-  //     } else {
-  //       addToSubTotal(data[index].Full_Price);
-  //       thePrice = data[index].Full_Price;
-  //     }
-  //
-  //
-  //     //data[index].Description
-  //     //thePrice -- the price of the item
-  //     //itemCount -- count of sequencial same items
-  //     //subTotal -- running subtotal of price
-  //
-  //     printScanningState(data[index].Description, thePrice, itemCount, subTotal);
-  //     keyinStateChange = 0; //reset
-  //     if(firstItem == 0){ //if not yet set, set firstItem
-  //       firstItem = 1;
-  //     }
-  //
-  //     break;
-  //   //*****************************************************
-  //   case 8: //ENTER Duplicates last scanned item
-  //
-  //
-  //     break;
-  //   default:
-  //     console.log("default of scan() switch called");
-  //     break;
-  // }//end switch
-
-
-
-}//end function
-
-function autoSetState(){
-  console.log("autoSetState() called");
-
-  //this function is used to find where you are in the program and return you to
-  //that state. It was developed as a comeback from CLEAR button push, but I think
-  //it will have several uses.
-
-  //check for login
-  if(loggedIn == 0){
-    console.log("autoSet to Login");
-    login();
-    return;
-  }
-
-  //check for checkout status
-
-
-  //scan will be the default value if all other IF tests pass
-  console.log("autoSet to Scan");
-  scan();
-
-
-
-}//end function
-
-function code(codeIn){
-  console.log("code function called");
-
-  //codes can be entered from any state (expect when logged out) and can be used
-  //** to perform different functions on the register
-
-  switch (codeIn) {
-    case "1": //logout
-      logout();
-      break;
-    case 22: //change PIN
-      changePin();
-      break;
-    case 6: //return
-      break;
-    case 77: //print all NLU
-      printNLU();
-      break;
-    case 78: //print last receipt
-      printLast();
-      break;
-    case 86: //end shift
-      endShift();
-      break;
-    case 94: //cash drop
-      cashDrop();
-      break;
-    default: //code not found
-      console.log("code not found");
-      printErrorState("Code Not Recognized", "*** PRESS ** CLEAR ***");
-      changeProgramState(2);
-      break;
-  }
-
-  //reset number
-  userNumber = undefined;
-}//end function
-
-function errorTriggered(){
-  console.log("errorTriggered called");
-
-  //this function is used to tell user when they pressed a button that couldn't
-  //be pressed
-
-  changeProgramState(6); //error state
-  printDefaultErrorMessage();
-
-}//end function
 
 function buttonEventListeners(){
   console.log("buttonEventListeners called");
 
 
   document.getElementById("btn-code").addEventListener("click", function(){
-    console.log("Code Clicked");
+    console.warn("Code Clicked");
     buttonSortByState("code");
   });
   document.getElementById("btn-suspend").addEventListener("click", function(){
-    console.log("Suspend Clicked");
+    console.warn("Suspend Clicked");
     buttonSortByState("suspend");
   });
   document.getElementById("btn-verify").addEventListener("click", function(){
-    console.log("Verify Clicked");
+    console.warn("Verify Clicked");
     buttonSortByState("verify");
   });
   document.getElementById("btn-tax").addEventListener("click", function(){
-    console.log("tax Clicked");
+    console.warn("tax Clicked");
     buttonSortByState("tax");
   });
   document.getElementById("btn-no-sale").addEventListener("click", function(){
-    console.log("No Sale Clicked");
+    console.warn("No Sale Clicked");
     buttonSortByState("no-sale");
   });
   document.getElementById("btn-eggs").addEventListener("click", function(){
-    console.log("eggs Clicked");
+    console.warn("eggs Clicked");
     buttonSortByState("eggs");
   });
   document.getElementById("btn-plastic").addEventListener("click", function(){
-    console.log("plastic Clicked");
+    console.warn("plastic Clicked");
     buttonSortByState("plastic");
   });
   document.getElementById("btn-employee").addEventListener("click", function(){
-    console.log("employee Clicked");
+    console.warn("employee Clicked");
     buttonSortByState("employee");
   });
   document.getElementById("btn-clear").addEventListener("click", function(){
-    console.log("clear Clicked");
+    console.warn("clear Clicked");
     buttonSortByState("clear");
   });
   document.getElementById("btn-mark-down").addEventListener("click", function(){
-    console.log("mark down Clicked");
+    console.warn("mark down Clicked");
     buttonSortByState("mark-down");
   });
   document.getElementById("btn-price-override").addEventListener("click", function(){
-    console.log("price override Clicked");
+    console.warn("price override Clicked");
     buttonSortByState("price-override");
   });
   document.getElementById("btn-void").addEventListener("click", function(){
-    console.log("void Clicked");
+    console.warn("void Clicked");
     buttonSortByState("void");
   });
   document.getElementById("btn-1").addEventListener("click", function(){
-    console.log("1 Clicked");
+    console.warn("1 Clicked");
     buttonSortByState("1");
   });
   document.getElementById("btn-2").addEventListener("click", function(){
-    console.log("2 Clicked");
+    console.warn("2 Clicked");
     buttonSortByState("2");
   });
   document.getElementById("btn-3").addEventListener("click", function(){
-    console.log("3 Clicked");
+    console.warn("3 Clicked");
     buttonSortByState("3");
   });
   document.getElementById("btn-4").addEventListener("click", function(){
-    console.log("4 Clicked");
+    console.warn("4 Clicked");
     buttonSortByState("4");
   });
   document.getElementById("btn-5").addEventListener("click", function(){
-    console.log("5 Clicked");
+    console.warn("5 Clicked");
     buttonSortByState("5");
   });
   document.getElementById("btn-6").addEventListener("click", function(){
-    console.log("6 Clicked");
+    console.warn("6 Clicked");
     buttonSortByState("6");
   });
   document.getElementById("btn-7").addEventListener("click", function(){
-    console.log("7 Clicked");
+    console.warn("7 Clicked");
     buttonSortByState("7");
   });
   document.getElementById("btn-8").addEventListener("click", function(){
-    console.log("8 Clicked");
+    console.warn("8 Clicked");
     buttonSortByState("8");
   });
   document.getElementById("btn-9").addEventListener("click", function(){
-    console.log("9 Clicked");
+    console.warn("9 Clicked");
     buttonSortByState("9");
   });
   document.getElementById("btn-0").addEventListener("click", function(){
-    console.log("0 Clicked");
+    console.warn("0 Clicked");
     buttonSortByState("0");
   });
   document.getElementById("btn-subtotal").addEventListener("click", function(){
-    console.log("subtotal Clicked");
+    console.warn("subtotal Clicked");
     buttonSortByState("subtotal");
   });
   document.getElementById("btn-paper").addEventListener("click", function(){
-    console.log("paper Clicked");
+    console.warn("paper Clicked");
     buttonSortByState("paper");
   });
   document.getElementById("btn-qty").addEventListener("click", function(){
-    console.log("qty Clicked");
+    console.warn("qty Clicked");
     buttonSortByState("qty");
   });
   document.getElementById("btn-total").addEventListener("click", function(){
-    console.log("total Clicked");
+    console.warn("total Clicked");
     buttonSortByState("total");
   });
   document.getElementById("btn-enter").addEventListener("click", function(){
-    console.log("enter Clicked");
+    console.warn("enter Clicked");
     buttonSortByState("enter");
   });
   document.getElementById("btn-card").addEventListener("click", function(){
-    console.log("card Clicked");
+    console.warn("card Clicked");
     buttonSortByState("card");
   });
   document.getElementById("btn-gift-card").addEventListener("click", function(){
-    console.log("gift-card Clicked");
+    console.warn("gift-card Clicked");
     buttonSortByState("gift-card");
   });
   document.getElementById("btn-cash").addEventListener("click", function(){
-    console.log("cash Clicked");
+    console.warn("cash Clicked");
     buttonSortByState("cash");
   });
+
+  //****************************************************************************
+  //************************ admin panel buttons *******************************
+  //****************************************************************************
+
+  document.getElementById("btn-enable-admin").addEventListener("click", function(){
+    console.warn("btn-enable-admin clicked");
+    adminBtnActions("btn-enable-admin");
+  })
+
+  document.getElementById("sim-1").addEventListener("click", function(){
+    console.warn("sim-1 Clicked");
+    adminBtnActions("sim-1");
+  });
+  document.getElementById("sim-2").addEventListener("click", function(){
+    console.warn("sim-2 Clicked");
+    adminBtnActions("sim-2");
+    });
+  document.getElementById("sim-3").addEventListener("click", function(){
+    console.warn("sim-3 Clicked");
+    adminBtnActions("sim-3");
+  });
+  document.getElementById("sim-4").addEventListener("click", function(){
+    console.warn("sim-4 Clicked");
+    adminBtnActions("sim-4");
+  });
+  document.getElementById("sim-5").addEventListener("click", function(){
+    console.warn("sim-5 Clicked");
+    adminBtnActions("sim-5");
+  });
+  document.getElementById("sim-6").addEventListener("click", function(){
+    console.warn("sim-6 Clicked");
+    adminBtnActions("sim-6");
+  });
+  document.getElementById("sim-7").addEventListener("click", function(){
+    console.warn("sim-7 Clicked");
+    adminBtnActions("sim-7");
+  });
+  document.getElementById("sim-8").addEventListener("click", function(){
+    console.warn("sim-8 Clicked");
+    adminBtnActions("sim-8");
+  });
+  document.getElementById("sim-9").addEventListener("click", function(){
+    console.warn("sim-9 Clicked");
+    adminBtnActions("sim-9");
+  });
+  document.getElementById("sim-10").addEventListener("click", function(){
+    console.warn("sim-10 Clicked");
+    adminBtnActions("sim-10");
+  });
+  document.getElementById("sim-11").addEventListener("click", function(){
+    console.warn("sim-11 Clicked");
+    adminBtnActions("sim-11");
+  });
+  document.getElementById("sim-12").addEventListener("click", function(){
+    console.warn("sim-12 Clicked");
+    adminBtnActions("sim-12");
+  });
+  document.getElementById("sim-13").addEventListener("click", function(){
+    console.warn("sim-13 Clicked");
+    adminBtnActions("sim-13");
+  });
+
 
 }//end function
 
@@ -1887,7 +2129,63 @@ function buttonSortByState(input){
   }//end switch
 }//end function
 
-function state1BtnActions(input){ //login
+function adminBtnActions(input){
+  console.log("adminBtnActions called");
+
+
+  switch (input) {
+    case "btn-enable-admin":
+      enableAdmin();
+      break;
+    case "sim-1": //drawer open
+
+      break;
+    case "sim-2": //drawer closed
+
+      break;
+    case "sim-3": //drawer toggle switch
+
+      break;
+    case "sim-4": //N/A
+
+      break;
+    case "sim-5": //N/A
+
+      break;
+    case "sim-6": //N/A
+
+      break;
+    case "sim-7": //N/A
+
+      break;
+    case "sim-8": //login
+      backdoor(1);
+      break;
+    case "sim-9": //show codes
+
+      break;
+    case "sim-10": //exit admin
+      exitAdmin();
+      break;
+    case "sim-11": //logout
+      backdoor(2);
+      break;
+    case "sim-12": //reset cart / reset session
+
+      break;
+    case "sim-13": //show help
+
+      break;
+
+    default: //debugging
+      console.warn("ERROR: input parameter not recognized");
+
+  }
+
+
+}//end function
+
+function state1BtnActions(input){ //login/signin
   console.log("state1BtnActions called");
   //State 1 - Total State
   switch (input) {
@@ -1901,13 +2199,50 @@ function state1BtnActions(input){ //login
     case "7":
     case "8":
     case "9":
-    login(1, input);
+      if(shiftSet == 0){
+        //direct user to signin()
+        if(idFlag == 0){ //has user entered an ID yet?
+          //send numbers to ID input processor
+          signIn(1, input);
+        } else {
+          //send numbers to PIN input processor
+          signIn(4, input);
+        }
+
+      } else
+      if(loggedIn == 0){
+        //direct user to login()
+        login(1, input);
+      } else {
+        //error
+        console.error("program should not be in this state");
+        return;
+      }
       break;
     case "enter":
-      login(2);
+      if(shiftSet == 0){ //has user signed in yet?
+        //direct user to signin
+        if(idFlag == 0){ //has user entered an ID yet?
+          //prompt user for ID
+          signIn(2);
+        } else {
+          //prompt user for PIN
+          signIn(5);
+        }
+      } else
+      if(loggedIn == 0){ //is user logged in?
+        //direct user to login
+        login(2);
+      } else {
+        //error - in state 1 loggedIn can equal 0 or 1,
+        //-- but shiftSet should never be 1
+        console.error("program should not be in this state");
+        return;
+      }
       break;
     case "clear":
-      login(3);
+      //return user to where there were
+      autoSetState();
       break;
     // case "code":
     //   break;
@@ -2026,9 +2361,11 @@ function state2BtnActions(input){ //scanning
   }//end switch
 }//end function
 
-function state3BtnActions(input){ //numbers, verify, enter, clear
+function state3BtnActions(input){ // total
   console.log("state3BtnActions called");
-  //State 1 - Total State
+
+  //State 3 - Total State
+
   switch (input) {
     // case "code":
     // console.log("Code clicked - State 1 - Active");
@@ -2136,9 +2473,11 @@ function state3BtnActions(input){ //numbers, verify, enter, clear
   }//end switch
 }//end function
 
-function state4BtnActions(input){ //clear
+function state4BtnActions(input){ //payment
   console.log("state4BtnActions called");
-  //State 1 - Total State
+
+  //State 4 - Payment State
+
   switch (input) {
     // case "code":
     // console.log("Code clicked - State 1 - Active");
@@ -2236,9 +2575,14 @@ function state4BtnActions(input){ //clear
   }//end switch
 }//end function
 
-function state5BtnActions(input){ //total, enter, clear
+function state5BtnActions(input){ //message
   console.log("state5BtnActions called");
-  //State 1 - Total State
+
+  //State 5 - Message State
+
+  //Message is a display that is used on MANY screens, and each one is unique.
+  //interaction on this option will be difficult
+
   switch (input) {
     // case "code":
     // console.log("Code clicked - State 1 - Active");
@@ -2265,32 +2609,6 @@ function state5BtnActions(input){ //total, enter, clear
     // console.log("employee clicked - State 1 - No action");
     //   break;
     case "clear":
-    console.log("clear clicked - State 5 - Active");
-      switch (previousDisplayState) {
-        case 1:
-
-          break;
-        case 2:
-
-          break;
-        case 3:
-
-          break;
-        case 4:
-
-          break;
-        case 5:
-
-          break;
-        case 6: //came from login
-          login(3); //resets login script
-          break;
-        case 7:
-
-          break;
-        default:
-
-      }
       break;
     // case "mark-down":
     // console.log("Mark Down clicked - State 1 - Active");
@@ -2375,7 +2693,7 @@ function state6BtnActions(input){ //error state
       break;
 
     default: //default action will eventually include a buzz sound
-      console.log("ERROR: State 6 - Can't do that son");
+      console.error("ERROR: State 6 - Can't do that son");
       break;
   }//end switch
 }//end function
@@ -2465,7 +2783,321 @@ function state7BtnActions(input){
   }//end switch
 }//end function
 
-//unique button functions
+
+//****************************************
+//****** SPECIFIC BUTTON FUNCTIONS *******
+
+function code(codeIn){
+  console.log("code() called");
+
+  //codes can be entered from any state (expect when logged out) and can be used
+  //** to perform different functions on the register
+
+  switch (codeIn) {
+    case "1": //logout
+      logout();
+      break;
+    case 22: //change PIN
+      changePin();
+      break;
+    case 6: //return
+      break;
+    case 77: //print all NLU
+      printNLU();
+      break;
+    case 78: //print last receipt
+      printLast();
+      break;
+    case 86: //end shift
+      endShift();
+      break;
+    case 94: //cash drop
+      cashDrop();
+      break;
+    default: //code not found
+      console.error("code not found");
+      printErrorState("Code Not Recognized", "*** PRESS ** CLEAR ***");
+      changeProgramState(2);
+      break;
+  }
+
+  //reset number
+  userNumber = undefined;
+
+
+}//end function
+
+function suspendRetrieve(){
+  console.log("suspendRetrieve called");
+
+  //function will suspend or retrieve a cart
+
+}//end function
+
+function verifyPrice(){
+  console.log("verifyPrice called");
+}//end function
+
+function tax(){
+  console.log("tax called");
+
+}//end function
+
+function noSale(){
+  console.log("noSale called");
+
+}//end function
+
+function tax(){
+  console.log("tax called");
+
+}//end function
+
+function quickAddItem(item){
+  console.log("quickAddItem called - ", item);
+
+  //quickAddItem works for keyboard shortcuts to ring up a unique item
+  //paramter ITEM will see which item is clicked and add it to the cart
+
+  switch (item) {
+    case "eggs":
+
+      break;
+    case "plastic":
+
+      break;
+    case "paper":
+
+      break;
+    default:
+      console.warn("parameter is not a pre-defined keyboard shortcute");
+
+  }
+}//end function
+
+function employee(){
+  console.log("employee called");
+
+}//end function
+
+function markDown(){
+  console.log("markDown called");
+
+}//end function
+
+function priceOverride(){
+  console.log("priceOverride called");
+
+}//end function
+
+function voidBtn(){
+  console.log("voidBtn called");
+
+}//end function
+
+function ebtSubTotal(){
+  console.log("ebtSubTotal called");
+
+}//end function
+
+function qty(){
+  console.log("qty called");
+
+}//end function
+
+function cardBtn(){
+  console.log("cardBtn called");
+
+}//end function
+
+function giftCard(){
+  console.log("giftCard called");
+
+}//end function
+
+function cashBtn(){
+  console.log("cashBtn called");
+
+}//end function
+
+//total, clear, enter are already heavily used in specific state and work flow management.
+//Do not think these will be needed
+function total(){
+  console.log("total called");
+
+}//end function
+
+function enter(){
+  console.log("enter called");
+
+}//end function
+
+function clear(){
+  console.log("clear called");
+
+}//end function
+
+
+//****************************************
+//****** ADMIN PANEL BUTTON FUNCTIONS *******
+
+function enableAdmin(){
+  console.log("enterAdmin called");
+
+  //enterAdmin is a button on the standard simulator
+  //user can press it to enable super functions
+
+  //make admin buttons visable
+  document.getElementById("sim-1").classList.toggle("hide");
+  // document.getElementById("sim-2").classList.toggle("hide");
+  // document.getElementById("sim-3").classList.toggle("hide");
+  showCashBoxStatus();
+  document.getElementById("sim-4").classList.toggle("hide");
+  document.getElementById("sim-5").classList.toggle("hide");
+  document.getElementById("sim-6").classList.toggle("hide");
+  document.getElementById("sim-7").classList.toggle("hide");
+  document.getElementById("sim-8").classList.toggle("hide");
+  document.getElementById("sim-9").classList.toggle("hide");
+  document.getElementById("sim-10").classList.toggle("hide");
+  document.getElementById("sim-11").classList.toggle("hide");
+  document.getElementById("sim-12").classList.toggle("hide");
+  document.getElementById("sim-13").classList.toggle("hide");
+
+}//end function
+
+
+function showCashBoxStatus(){
+  console.log("showCashBoxStatus called");
+
+  //this function shows if cash box is open
+  //only shows status, does not change
+
+  if(cashBoxFlag == 0){ //if box is closed...
+    toggleCashBoxIndicator(2);
+  } else {
+    toggleCashBoxIndicator(1);
+  }
+
+}//end function
+
+cashBoxFlag = 0; //flag indicates if cash box is open or closed
+function toggleCashBoxIndicator(toggle){
+  console.log("toggleCashBoxIndicator called");
+
+  //this function changes the flag for the admin displayed button
+  //sim-2 has RED CLOSED button
+  //sim-3 has GREEN OPEN button
+
+  //case 0 - toggle
+  //case 1 - mark box as open
+  //case 2 - mark box as closed
+
+  //set default -- default toggles display
+  if(toggle === undefined){
+    toggle = 0;
+  }
+
+  switch (toggle) {
+    case 0: // toggle box
+
+      //*NOTE* using case 0 negates the usefulness of this function
+      //--function is meant to display to user if cash box is open or closed
+
+
+      if(cashBoxFlag == 0){ //if box is closed...
+        //open box
+        toggleCashBoxIndicator(1);
+        return;
+      } else {
+        //close box
+        toggleCashBoxIndicator(2);
+        return;
+      }
+
+    case 1: //open box
+      document.getElementById("sim-2").classList.add("hide"); //hide red closed
+      document.getElementById("sim-3").classList.toggle("hide"); //show green open
+      cashBoxFlag = 1; //set flag
+      break;
+
+    case 2: //close box
+      document.getElementById("sim-3").classList.add("hide"); //hide green open
+      document.getElementById("sim-2").classList.toggle("hide"); //show red closed
+      cashBoxFlag = 0; //set flag
+      break;
+
+    default: //debugging
+      console.error("ERROR: parameter not recognized", toggle);
+      break;
+  }
+
+
+}//end function
+
+function exitAdmin(){
+  console.log("exitAdmin called");
+
+  //exitAdmin is a button on the admin keyboard
+  //user can press to disable super functions
+
+  //hide all admin buttons
+  document.getElementById("sim-1").classList.add("hide");
+  document.getElementById("sim-2").classList.add("hide");
+  document.getElementById("sim-3").classList.add("hide");
+  document.getElementById("sim-4").classList.add("hide");
+  document.getElementById("sim-5").classList.add("hide");
+  document.getElementById("sim-6").classList.add("hide");
+  document.getElementById("sim-7").classList.add("hide");
+  document.getElementById("sim-8").classList.add("hide");
+  document.getElementById("sim-9").classList.add("hide");
+  document.getElementById("sim-10").classList.add("hide");
+  document.getElementById("sim-11").classList.add("hide");
+  document.getElementById("sim-12").classList.add("hide");
+  document.getElementById("sim-13").classList.add("hide");
+
+}//end function
+
+function loginBtn(){
+  console.log("loginBtn called");
+
+}//end function
+
+function logoutBtn(){
+  console.log("logoutBtn called");
+
+}//end function
+
+function reset(){
+  console.log("reset called");
+
+}//end function
+
+function showCodes(){
+  console.log("showCodes called");
+
+}//end function
+
+function showHelp(){
+  console.log("runTutorial called");
+
+}//end function
+
+function drawerOpen(){
+  console.log("drawerOpen called");
+
+}//end function
+
+function drawerClosed(){
+  console.log("drawerToggle called");
+
+}//end function
+
+function drawerToggle(){
+  console.log("drawerToggle called");
+
+}//end function
+
+
 
 
 //######################################################################
@@ -2502,7 +3134,12 @@ ajax.onreadystatechange = function()
 
       //login() variables
       shiftSet = 0; // set once per shift on first login and last logout (code 86) -- used to track user data over entire day
+      idFlag = 0; //flag used for tracking ID input vs PIN input
+      userResultIndex = undefined; //session user data is saved here
+
+      //login() variables
       loggedIn = 0; //0 = logged out, 1 = logged in
+      idPass = 0; //flag used for tracking ID input vs PIN input
 
       //changeProgramState variables
       previousProgramState = 0; //previous program state
@@ -2531,12 +3168,33 @@ ajax.onreadystatechange = function()
       DS_LOGIN = 7;
       DS_OPTION = 8;
 
-      //user will be set by savedUsers()
-      user = {
-        name:"Benjamin",
-        id:"77",
-        pin:"2222"
-      };
+      //messageBanner varabiles
+      paperCounter = 0; // flag for new paper roll needed
+      pickupNeeded = 0; //flag for put cash in safe
+      NEED_PAPER_SOON = 7; //trigger point for early notification -- number is a single transaction
+      OUT_OF_PAPER = 10; //max number of transactions allowed before change paper code
+      PICKUP_SOON = 1000; //trigger point for early notification -- number is cash balance in drawer
+      PICKUP_NOW = 1400; //max amount of cash before trigger pickup code
+
+
+      //user data
+      userProfiles = [
+        {name: "Ray", id: "1", pin: "2222"},
+        {name: "Princess", id: "27", pin: "2222"},
+        {name: "Keith", id: "81", pin: "2222"},
+        {name: "Ray", id: "65", pin: "2222"},
+        {name: "Benjamin", id: "77", pin: "2222"},
+        {name: "Sarah", id: "11", pin: "2222"},
+        {name: "Kelsey J", id: "58", pin: "2222"},
+        {name: "Kelsey O", id: "36", pin: "2222"},
+        {name: "Tonya", id: "45", pin: "2222"}
+      ];
+
+      // user = {
+      //   name:"Benjamin",
+      //   id:"77",
+      //   pin:"2222"
+      // };
 
       store = {
         number:"22",
@@ -2544,10 +3202,8 @@ ajax.onreadystatechange = function()
         website:"www.ALDI.us"
       };
 
-      //login() variables
-      idPass = 0; //determine if entered ID or PIN
-
-
+      //buildScanNumber() variable
+      userNumber = undefined;
 
       //scan() variables
       newCart = 0; //if nothing in cart
@@ -2560,8 +3216,6 @@ ajax.onreadystatechange = function()
       checkID = 0; //change to 1 if an item requires ID verification
       COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
       scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
-
-
 
       //buildCartArray() variables
       myCart = new Array({
@@ -2584,9 +3238,6 @@ ajax.onreadystatechange = function()
 
     }
 
-    //load eventListener
-    buttonEventListeners();
-
     //login -- first sign in includes a user database load (eventually)
     // if(loggedIn == 0){//if not logged in, call login script
     //   login();
@@ -2599,16 +3250,16 @@ ajax.onreadystatechange = function()
     //initialize program
     buttonEventListeners(); //load eventListeners
     initializeWallet(); // create wallet
+    initializePrinter(); //load printer header to page
 
     //print output
     printData(); //print food database to display -- testing only
     printWallet(myPaymentCard); //print wallet to display
     printWeightToDisplay(0); //print scale
-    printerMain(); //reset printer, print header on reciept
 
     //start program
     autoSetState();
-
+    //scan();
 
 
 

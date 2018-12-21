@@ -259,6 +259,22 @@ KEYBOARD BOX STYLES
   border: solid red 2px;
 }
 
+.c-sim-red:hover {
+  background-color: #dc8b8b;
+}
+
+.c-sim-green:hover {
+  background-color: #34E134;
+}
+
+.cash-box-open {
+  background-color: #34E134;
+}
+
+.cash-box-closed {
+  background-color: #BA1717;
+}
+
 .key-small {
   height: 58px;
   width: 58px;
@@ -303,6 +319,15 @@ KEYBOARD BOX STYLES
   color: white;
 }
 
+.c-sim-red {
+  background-color: #BA1717;
+  color: white;
+}
+
+.c-sim-green {
+  background-color: #8bdc8b;
+  color: white;
+}
 
 /**************************************
 TERMINAL BOX STYLES
