@@ -1,3 +1,4 @@
+console.log("JS loaded - v 3.2");
 //**********************************
 //****** supporting functions ******
 //****** called by other functions to do a task ****
@@ -250,7 +251,6 @@ function buildScanNumber(number){
       printScanningKeyinState(data[lastItem].Description, userNumber);
       break;
     case 3: //total
-
       break;
     case 4: //payment
 
@@ -270,6 +270,62 @@ function buildScanNumber(number){
       break;
 
   }//end switch
+
+
+}//end function
+
+function buildTenderNumber(input){
+  console.log("buildTenderNumber called");
+
+  //function builds the tender string and outputs it
+
+  //set variables
+  if(tenderNumber === undefined){
+    tenderNumber = "-----.--"; //default value
+  }
+
+  if(input === undefined){
+    console.error("input parameter not defined");
+    return;
+  }
+
+
+  //remove decimal
+
+  console.warn("Before: ", tenderNumber);
+
+  let frontPart = tenderNumber.substring(0, 5);
+  let backPart = tenderNumber.substring(6, 8);
+
+  tenderNumber = frontPart + backPart;
+
+  console.log("front: ", frontPart);
+  console.log("back: ", backPart);
+  console.warn("Rebuilt: ", tenderNumber);
+
+
+  //add in user input
+  tenderNumber += input;
+  console.log("bp1: ", tenderNumber);
+
+  //trim front off string
+  tenderNumber = tenderNumber.substring(1, 8);
+  console.log("bp2: ", tenderNumber);
+
+  //add decimal back into string
+  frontPart = tenderNumber.substring(0, 5);
+  backPart = tenderNumber.substring(5, 8);
+
+  console.log("front: ", frontPart);
+  console.log("back: ", backPart);
+
+  tenderNumber = frontPart + "." + backPart;
+
+  console.warn("FINAL: ", tenderNumber);
+
+
+  //print results to display
+  printTotalState("TOTAL", subTotal, "TENDERED:", tenderNumber);
 
 
 }//end function
@@ -317,6 +373,7 @@ function backdoor(input){ //backdoor -- for dev use only
 //*************************************
 //***** PRINT TO DISPLAY **************
 
+
 function printTotalState(ul, ur, ll, lr){ //
   console.log("printTotalState called");
 
@@ -324,6 +381,20 @@ function printTotalState(ul, ur, ll, lr){ //
   //ur - UPPER RIGHT
   //ll - LOWER LEFT
   //lr - LOWER RIGHT
+
+  //set defaults
+  if(ul === undefined){
+    ul = "TOTAL";
+  }
+  if(ur === undefined){
+    ur = subTotal;
+  }
+  if(ll === undefined){
+    ll = "TENDERED:";
+  }
+  if(lr === undefined){
+    lr = tenderNumber;
+  }
 
   changeDisplayState(1);
 
@@ -450,6 +521,7 @@ function printDefaultErrorMessage(){
   document.getElementById("ES-L").value = "*** PRESS ** CLEAR ***";
 }//end function
 
+
 //*************************************
 //********* PROGRAM STATE *************
 
@@ -486,11 +558,28 @@ function autoSetState(){ //sets program state based on conditions
     return;
   }
 
-  //check for checkout status
+
+  if(currentProgramState == PS_TOTAL && previousDisplayState == PS_ERROR){
+    console.log("autoSet to Scan - code 1a");
+    scan();
+    return;
+  }
+
+  if(currentProgramState == PS_ERROR && previousProgramState == PS_TOTAL){
+    console.log("autoSet to Total - code 2a");
+    totalState();
+    return;
+  }
+
+  if(currentProgramState == PS_TOTAL && previousProgramState == PS_SCANNING){
+    console.log("autoSet to Scan - code 3a");
+    scan();
+    return;
+  }
 
 
   //scan will be the default value if all other IF tests pass
-  console.log("autoSet to scan()");
+  console.log("autoSet to Scan - code 99d");
   scan();
 
 
@@ -594,13 +683,17 @@ function changeProgramState(state){ //change program state/how buttons functions
   // PS_ERROR = 6;
   // PS_NEWCART = 7;
 
+
   if(state > 0 && state < 8){
     //if change, update history
-    if(previousProgramState != currentProgramState){
+    if(currentProgramState != state){ //if the new, incoming state is different then the current state
       previousProgramState = currentProgramState; //update history
     }
+
     //update current state
     currentProgramState = state;
+
+
   } else {
     console.error("ERROR: program state not valid: ", state);
   }
@@ -821,21 +914,6 @@ function login(part, number){ //login to user account
   }
 }//end function
 
-function logout(){ //log out of user account
-  console.log("logout called");
-
-  //function logs out a user by resetting loggedIn variable
-  //autoSetState() will then redirect user to login function
-
-  loggedIn = 0; //log out
-  autoSetState(); //reset state
-} // End function
-
-//idFlag = 0; //flag used for tracking ID input vs PIN input
-//userResultIndex = undefined; //session user data is saved here
-//searchResults = undefined; //used for display output
-
-
 function signIn(part, number){
   console.log("signIn called");
 
@@ -1039,25 +1117,6 @@ function signIn(part, number){
 
 }//end function
 
-function signOut(){
-  console.log("signOut called");
-
-  //signOut ends a shiftSet cycle
-  //called by code 84
-
-  //reset variables
-  shiftSet = 0;
-  loggedIn = 0;
-  userResultIndex = undefined;
-
-  //eventually need to add money data export function
-  //will need
-
-  //redirect
-  autoSetState();
-
-}//end function
-
 function scan(part, item){ //scan items
   console.log("scan() called");
 
@@ -1212,6 +1271,92 @@ function scan(part, item){ //scan items
     printScanningState(data[lastItem].Description, thePrice, itemCount, subTotal);
   }
 
+
+}//end function
+
+function totalState(part, number){
+  console.log("totalState called");
+
+  //function handles total state information
+
+  if(part === undefined){
+    part = 0;
+  }
+
+  switch (part) {
+    case 0: //print initial display
+      changeProgramState(PS_TOTAL);
+      printTotalState();
+      break;
+
+    //***************************************************
+    case 1: // [0-9] eventListeners - collect ID
+      //replace default "-----.--" with numbers
+
+
+      //check if number is too long
+      let searchResults = tenderNumber.search("-");
+      if(searchResults == 0){ //hyphen found, input less than 3
+        //continue building number
+        buildTenderNumber(number);
+      } else { //no hypen found
+        console.warn("Input too long");
+        printErrorState("Input Too Long", "Press Clear");
+        changeProgramState(PS_ERROR);
+      }
+
+      console.error("current bug: tenderNumber is not cleared if input is too long and error thrown and user press clear ");
+
+      break;
+
+    //***************************************************
+    // case 2: // ENTER eventListeners - confirm ID
+    //
+    //   //before running searchUsers() remove hyphens
+    //   userInput = userInput.replace(/-/g,"");
+    //
+    //   //search users for match - userResultIndex will be used again in case 5 to confirm PIN
+    //   userResultIndex = searchUsers(userInput);
+    //
+    //   //check for no-match before check for match
+    //   //this prevents errors and allows display out message to user
+    //   if(userResultIndex == -1){ //-1 = no match found
+    //     console.warn("ID results - no match found");
+    //
+    //     //print error message to diplay
+    //     printErrorState("ID Not Found", "Press Clear");
+    //
+    //     //change state
+    //     changeProgramState(PS_ERROR);
+    //     return;
+    //   }
+    //
+    //   if(userResultIndex == -2){
+    //     console.error("Unexpected error - ID match check");
+    //
+    //     //Print error message
+    //     printErrorState("Fatal Error - 117", "Call Helpdesk"); //throw error code
+    //
+    //     //change state
+    //     changeProgramState(PS_ERROR);
+    //     return;
+    //   }
+    //
+    //   //check for match
+    //   if(userInput == userProfiles[userResultIndex].id){
+    //     console.log("ID correct");
+    //
+    //     //input matches id
+    //     idFlag = 1; //set flag
+    //
+    //     //redirect to PIN prompt
+    //     signIn(3);
+    //     return;
+    //   }
+    //   break;
+    default:
+
+  }
 
 }//end function
 
@@ -1434,6 +1579,8 @@ function addToSubTotal(xin){
     subTotal = xin;
     console.log("debug 2");
   }
+  //round number
+  subTotal = Math.round(subTotal * 100) / 100; //round to decimal
 }//end function
 
 function buildCartArray(cartId, itemIndex, itemQuantity, itemWeight, itemVoided){
@@ -1903,6 +2050,7 @@ function updatePrinterPayment(){
 
 }//end function
 
+
 //**************************************
 //********** BUTTON EVENTLISTENERS *****
 //**** AND SPECIFIC STATE FUNCTIONS ****
@@ -2137,14 +2285,16 @@ function adminBtnActions(input){
     case "btn-enable-admin":
       enableAdmin();
       break;
-    case "sim-1": //drawer open
+    case "sim-1": //N/A
 
       break;
     case "sim-2": //drawer closed
-
+      //click this button to close the draw
+      toggleCashBoxIndicator(2); //close
       break;
-    case "sim-3": //drawer toggle switch
-
+    case "sim-3": //drawer open
+      //click this button to close the draw
+      toggleCashBoxIndicator(1); //open
       break;
     case "sim-4": //N/A
 
@@ -2344,6 +2494,7 @@ function state2BtnActions(input){ //scanning
     case "qty":
       break;
     case "total":
+      totalState();
       break;
     // case "card":
     // errorTriggered();
@@ -2367,15 +2518,38 @@ function state3BtnActions(input){ // total
   //State 3 - Total State
 
   switch (input) {
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+    case "6":
+    case "7":
+    case "8":
+    case "9":
+      totalState(1, input);
+      break;
+    case "verify":
+    console.log("verify clicked - State 1 - Active");
+      break;
+    case "clear":
+      changeProgramState(PS_SCANNING);
+      autoSetState();
+      break;
+    case "total":
+    console.log("total clicked - State 1 - Active");
+      break;
+    case "enter":
+    console.log("enter clicked - State 1 - Active");
+      break;
     // case "code":
     // console.log("Code clicked - State 1 - Active");
     //   break;
     // case "suspend":
     // console.log("Suspend clicked - State 1 - Active");
     //   break;
-    case "verify":
-    console.log("verify clicked - State 1 - Active");
-      break;
+
     // case "tax":
     // console.log("tax clicked - State 1 - No action");
     //   break;
@@ -2391,9 +2565,7 @@ function state3BtnActions(input){ // total
     // case "employee":
     // console.log("employee clicked - State 1 - No action");
     //   break;
-    case "clear":
-    console.log("clear clicked - State 1 - Active");
-      break;
+
     // case "mark-down":
     // console.log("Mark Down clicked - State 1 - Active");
     //   break;
@@ -2403,46 +2575,7 @@ function state3BtnActions(input){ // total
     // case "void":
     // console.log("void clicked - State 1 - No action");
     //   break;
-    case "7":
-    scan(1, input);
-    console.log("7 clicked - State 1 - Active");
-      break;
-    case "8":
-    scan(1, input);
-    console.log("8 clicked - State 1 - Active");
-      break;
-    case "9":
-    scan(1, input);
-    console.log("9 clicked - State 1 - Active");
-      break;
-    case "4":
-    scan(1, input);
-    console.log("4 clicked - State 1 - No action");
-      break;
-    case "5":
-    scan(1, input);
-    console.log("5 clicked - State 1 - Active");
-      break;
-    case "6":
-    scan(1, input);
-    console.log("6 clicked - State 1 - Active");
-      break;
-    case "1":
-    scan(1, input);
-    console.log("1 clicked - State 1 - Active");
-      break;
-    case "2":
-    scan(1, input);
-    console.log("2 clicked - State 1 - No action");
-      break;
-    case "3":
-    scan(1, input);
-    console.log("3 clicked - State 1 - Active");
-      break;
-    case "0":
-    scan(1, input);
-    console.log("0 clicked - State 1 - Active");
-      break;
+
     // case "subtotal":
     // console.log("subtotal clicked - State 1 - Active");
     //   break;
@@ -2452,12 +2585,6 @@ function state3BtnActions(input){ // total
     // case "qty":
     // console.log("qty clicked - State 1 - Active");
     //   break;
-    case "total":
-    console.log("total clicked - State 1 - Active");
-      break;
-    case "enter":
-    console.log("enter clicked - State 1 - Active");
-      break;
     // case "card":
     // console.log("card clicked - State 1 - No action");
     //   break;
@@ -2469,6 +2596,7 @@ function state3BtnActions(input){ // total
     //   break;
     default:
       console.log("ERROR: could not find the button you clicked");
+      errorTriggered();
       break;
   }//end switch
 }//end function
@@ -2785,7 +2913,8 @@ function state7BtnActions(input){
 
 
 //****************************************
-//****** SPECIFIC BUTTON FUNCTIONS *******
+//****** CODE FUNCTIONS *******
+
 
 function code(codeIn){
   console.log("code() called");
@@ -2808,8 +2937,8 @@ function code(codeIn){
     case 78: //print last receipt
       printLast();
       break;
-    case 86: //end shift
-      endShift();
+    case "86": //end shift
+      signOut();
       break;
     case 94: //cash drop
       cashDrop();
@@ -2826,6 +2955,40 @@ function code(codeIn){
 
 
 }//end function
+
+function logout(){ //log out of user account
+  console.log("logout called");
+
+  //function logs out a user by resetting loggedIn variable
+  //autoSetState() will then redirect user to login function
+
+  loggedIn = 0; //log out
+  autoSetState(); //reset state
+} // End function
+
+function signOut(){
+  console.log("signOut called");
+
+  //signOut ends a shiftSet cycle
+  //called by code 84
+
+  //reset variables
+  shiftSet = 0;
+  loggedIn = 0;
+  userResultIndex = undefined;
+
+  //eventually need to add money data export function
+  //will need
+
+  //redirect
+  autoSetState();
+
+}//end function
+
+
+//****************************************
+//****** SPECIFIC BUTTON FUNCTIONS *******
+
 
 function suspendRetrieve(){
   console.log("suspendRetrieve called");
@@ -2941,17 +3104,21 @@ function clear(){
 //****************************************
 //****** ADMIN PANEL BUTTON FUNCTIONS *******
 
+
 function enableAdmin(){
   console.log("enterAdmin called");
 
   //enterAdmin is a button on the standard simulator
   //user can press it to enable super functions
 
+  //set flag
+  adminPanelFlag = 1;
+
   //make admin buttons visable
   document.getElementById("sim-1").classList.toggle("hide");
   // document.getElementById("sim-2").classList.toggle("hide");
   // document.getElementById("sim-3").classList.toggle("hide");
-  showCashBoxStatus();
+  manageCashBoxIndicator();
   document.getElementById("sim-4").classList.toggle("hide");
   document.getElementById("sim-5").classList.toggle("hide");
   document.getElementById("sim-6").classList.toggle("hide");
@@ -2963,76 +3130,40 @@ function enableAdmin(){
   document.getElementById("sim-12").classList.toggle("hide");
   document.getElementById("sim-13").classList.toggle("hide");
 
+
+
 }//end function
 
+function manageCashBoxIndicator(){
+  console.log("manageCashBoxIndicator called");
 
-function showCashBoxStatus(){
-  console.log("showCashBoxStatus called");
+  //set local variables
+  let boxClosed = document.getElementById("sim-2"); //red closed button
+  let boxOpen = document.getElementById("sim-3"); //green open button
 
-  //this function shows if cash box is open
-  //only shows status, does not change
+  //hide both indicators
+  boxClosed.classList.add("hide"); //should turn off...
+  boxOpen.classList.add("hide"); //should turn off...
 
-  if(cashBoxFlag == 0){ //if box is closed...
-    toggleCashBoxIndicator(2);
+  if(adminPanelFlag == 1){ //if admin panel enabled...
+    //then cashBoxIndicator should be active
+
+    if(cashBoxFlag == 1){ //if cash box is open
+      //show open indicator
+      console.log("show boxOpen indicator");
+      boxOpen.classList.remove("hide");
+    } else {
+      //show closed indicator
+      console.log("show boxClosed indicator");
+      boxClosed.classList.remove("hide");
+    }
+
   } else {
-    toggleCashBoxIndicator(1);
+    //then cashBoxIndicator should not be active
+    console.log("Admin panel disabled, hiding cashbox indicator");
   }
 
-}//end function
-
-cashBoxFlag = 0; //flag indicates if cash box is open or closed
-function toggleCashBoxIndicator(toggle){
-  console.log("toggleCashBoxIndicator called");
-
-  //this function changes the flag for the admin displayed button
-  //sim-2 has RED CLOSED button
-  //sim-3 has GREEN OPEN button
-
-  //case 0 - toggle
-  //case 1 - mark box as open
-  //case 2 - mark box as closed
-
-  //set default -- default toggles display
-  if(toggle === undefined){
-    toggle = 0;
-  }
-
-  switch (toggle) {
-    case 0: // toggle box
-
-      //*NOTE* using case 0 negates the usefulness of this function
-      //--function is meant to display to user if cash box is open or closed
-
-
-      if(cashBoxFlag == 0){ //if box is closed...
-        //open box
-        toggleCashBoxIndicator(1);
-        return;
-      } else {
-        //close box
-        toggleCashBoxIndicator(2);
-        return;
-      }
-
-    case 1: //open box
-      document.getElementById("sim-2").classList.add("hide"); //hide red closed
-      document.getElementById("sim-3").classList.toggle("hide"); //show green open
-      cashBoxFlag = 1; //set flag
-      break;
-
-    case 2: //close box
-      document.getElementById("sim-3").classList.add("hide"); //hide green open
-      document.getElementById("sim-2").classList.toggle("hide"); //show red closed
-      cashBoxFlag = 0; //set flag
-      break;
-
-    default: //debugging
-      console.error("ERROR: parameter not recognized", toggle);
-      break;
-  }
-
-
-}//end function
+} //end function
 
 function exitAdmin(){
   console.log("exitAdmin called");
@@ -3040,10 +3171,14 @@ function exitAdmin(){
   //exitAdmin is a button on the admin keyboard
   //user can press to disable super functions
 
+  //set flag
+  adminPanelFlag = 0;
+
   //hide all admin buttons
   document.getElementById("sim-1").classList.add("hide");
-  document.getElementById("sim-2").classList.add("hide");
-  document.getElementById("sim-3").classList.add("hide");
+  // document.getElementById("sim-2").classList.add("hide");
+  // document.getElementById("sim-3").classList.add("hide");
+  manageCashBoxIndicator();
   document.getElementById("sim-4").classList.add("hide");
   document.getElementById("sim-5").classList.add("hide");
   document.getElementById("sim-6").classList.add("hide");
@@ -3054,6 +3189,8 @@ function exitAdmin(){
   document.getElementById("sim-11").classList.add("hide");
   document.getElementById("sim-12").classList.add("hide");
   document.getElementById("sim-13").classList.add("hide");
+
+
 
 }//end function
 
@@ -3098,8 +3235,6 @@ function drawerToggle(){
 }//end function
 
 
-
-
 //######################################################################
 //######################################################################
 //######################################################################
@@ -3142,7 +3277,7 @@ ajax.onreadystatechange = function()
       idPass = 0; //flag used for tracking ID input vs PIN input
 
       //changeProgramState variables
-      previousProgramState = 0; //previous program state
+      previousProgramState = 1; //previous program state
       currentProgramState = 1; //current program state
 
       //Program States
@@ -3175,6 +3310,9 @@ ajax.onreadystatechange = function()
       OUT_OF_PAPER = 10; //max number of transactions allowed before change paper code
       PICKUP_SOON = 1000; //trigger point for early notification -- number is cash balance in drawer
       PICKUP_NOW = 1400; //max amount of cash before trigger pickup code
+
+      //buildTenderNumber variables
+      tenderNumber = "-----.--"; //tendered payment value entered  here
 
 
       //user data
@@ -3236,7 +3374,20 @@ ajax.onreadystatechange = function()
       cancelQuantityOut = 0;
       cancelWeightedOut = 0;
 
+      //variables used by admin panel
+      adminPanelFlag = 0; //flag indicates if admin panel is active
+      cashBoxFlag = 0; //flag indicates if cash box is open or closed
+
+
+
+      //dev notes for continuation
+      console.error("currently in totalState(1) -- just added sorting for 0-9 event listeners, but need to add additional logic to manage first keypress, since tenderNumber is undefined");
+      console.error("Bug found. When a search result is not found, the search number is not automatically cleared ")
+      console.error("bug found. when tenderNumber is too long, error is thrown. Pressing clear returns to scan state");
     }
+
+
+
 
     //login -- first sign in includes a user database load (eventually)
     // if(loggedIn == 0){//if not logged in, call login script
@@ -3259,8 +3410,10 @@ ajax.onreadystatechange = function()
 
     //start program
     autoSetState();
-    //scan();
 
+    //current build section
+    //totalState(1);
+    //buildTenderNumber();
 
 
   }//END OF AJAX

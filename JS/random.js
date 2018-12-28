@@ -49,7 +49,7 @@ var inventory = data[i].Inventory;
   idPass = 0; //flag used for tracking ID input vs PIN input
 
   //changeProgramState variables
-  previousProgramState = 0; //previous program state
+  previousProgramState = 1; //previous program state
   currentProgramState = 1; //current program state
 
   //Program States
@@ -75,7 +75,6 @@ var inventory = data[i].Inventory;
   DS_LOGIN = 7;
   DS_OPTION = 8;
 
-
   //messageBanner varabiles
   paperCounter = 0; // flag for new paper roll needed
   pickupNeeded = 0; //flag for put cash in safe
@@ -84,25 +83,29 @@ var inventory = data[i].Inventory;
   PICKUP_SOON = 1000; //trigger point for early notification -- number is cash balance in drawer
   PICKUP_NOW = 1400; //max amount of cash before trigger pickup code
 
-  //user will be set by savedUsers()
 
+  //buildTenderNumber variables
+  tenderNumber = undefined; //tendered payment value entered  here
+
+
+  //user data
   userProfiles = [
-    {name: "Ray", id: "1", pin: "1212"},
-    {name: "Princess", id: "27", pin: "1212"},
-    {name: "Keith", id: "81", pin: "1212"},
-    {name: "Ray", id: "65", pin: "1212"},
-    {name: "Benjamin", id: "77", pin: "1212"},
-    {name: "Sarah", id: "11", pin: "1212"},
-    {name: "Kelsey J", id: "58", pin: "1212"},
-    {name: "Kelsey O", id: "36", pin: "1212"},
-    {name: "Tonya", id: "45", pin: "1212"}
+    {name: "Ray", id: "1", pin: "2222"},
+    {name: "Princess", id: "27", pin: "2222"},
+    {name: "Keith", id: "81", pin: "2222"},
+    {name: "Ray", id: "65", pin: "2222"},
+    {name: "Benjamin", id: "77", pin: "2222"},
+    {name: "Sarah", id: "11", pin: "2222"},
+    {name: "Kelsey J", id: "58", pin: "2222"},
+    {name: "Kelsey O", id: "36", pin: "2222"},
+    {name: "Tonya", id: "45", pin: "2222"}
   ];
 
-  user = {
-    name:"Benjamin",
-    id:"77",
-    pin:"2222"
-  };
+  // user = {
+  //   name:"Benjamin",
+  //   id:"77",
+  //   pin:"2222"
+  // };
 
   store = {
     number:"22",
@@ -125,8 +128,6 @@ var inventory = data[i].Inventory;
   COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
   scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
 
-
-
   //buildCartArray() variables
   myCart = new Array({
     index: 0,
@@ -145,6 +146,10 @@ var inventory = data[i].Inventory;
   cancelStandardOut = 0;
   cancelQuantityOut = 0;
   cancelWeightedOut = 0;
+
+  //variables used by admin panel
+  adminPanelFlag = 0; //flag indicates if admin panel is active
+  cashBoxFlag = 0; //flag indicates if cash box is open or closed
 
 }
 
