@@ -39,6 +39,10 @@ var inventory = data[i].Inventory;
 
 //set variables
 {
+  //system check
+  theFlag = 0;
+
+
   //login() variables
   shiftSet = 0; // set once per shift on first login and last logout (code 86) -- used to track user data over entire day
   idFlag = 0; //flag used for tracking ID input vs PIN input
@@ -94,7 +98,7 @@ var inventory = data[i].Inventory;
     {name: "Princess", id: "27", pin: "2222"},
     {name: "Keith", id: "81", pin: "2222"},
     {name: "Ray", id: "65", pin: "2222"},
-    {name: "Benjamin", id: "77", pin: "2222"},
+    {name: "David", id: "77", pin: "2222"},
     {name: "Sarah", id: "11", pin: "2222"},
     {name: "Kelsey J", id: "58", pin: "2222"},
     {name: "Kelsey O", id: "36", pin: "2222"},

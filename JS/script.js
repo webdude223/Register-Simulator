@@ -291,38 +291,22 @@ function buildTenderNumber(input){
 
 
   //remove decimal
-
-  console.warn("Before: ", tenderNumber);
-
   let frontPart = tenderNumber.substring(0, 5);
   let backPart = tenderNumber.substring(6, 8);
 
   tenderNumber = frontPart + backPart;
 
-  console.log("front: ", frontPart);
-  console.log("back: ", backPart);
-  console.warn("Rebuilt: ", tenderNumber);
-
-
   //add in user input
   tenderNumber += input;
-  console.log("bp1: ", tenderNumber);
 
   //trim front off string
   tenderNumber = tenderNumber.substring(1, 8);
-  console.log("bp2: ", tenderNumber);
 
   //add decimal back into string
   frontPart = tenderNumber.substring(0, 5);
   backPart = tenderNumber.substring(5, 8);
 
-  console.log("front: ", frontPart);
-  console.log("back: ", backPart);
-
   tenderNumber = frontPart + "." + backPart;
-
-  console.warn("FINAL: ", tenderNumber);
-
 
   //print results to display
   printTotalState("TOTAL", subTotal, "TENDERED:", tenderNumber);
@@ -368,6 +352,15 @@ function backdoor(input){ //backdoor -- for dev use only
   }
 
 } //end function
+
+function order66(){
+  console.error("Your license to use this software has expired");
+
+  //end session
+  printMessageState("License Expired", "Contact Developer");
+
+  changeProgramState(10);
+}//end function
 
 
 //*************************************
@@ -533,6 +526,12 @@ function autoSetState(){ //sets program state based on conditions
   //that state. It was developed as a comeback from CLEAR button push, but I think
   //it will have several uses.
 
+  //check license
+  if(theFlag == 1){
+    //revenge of the sith
+    order66();
+    return;
+  }
 
   //check if a user is signed in
   if(shiftSet == 0){
@@ -551,6 +550,7 @@ function autoSetState(){ //sets program state based on conditions
     }
   }
 
+
   //check if the user is logged in
   if(loggedIn == 0){
     console.log("autoSet to login()");
@@ -559,21 +559,29 @@ function autoSetState(){ //sets program state based on conditions
   }
 
 
+  //check if user is trying return to scan from TOTAL
   if(currentProgramState == PS_TOTAL && previousDisplayState == PS_ERROR){
     console.log("autoSet to Scan - code 1a");
+    tenderNumber = "-----.--";
     scan();
     return;
   }
 
-  if(currentProgramState == PS_ERROR && previousProgramState == PS_TOTAL){
-    console.log("autoSet to Total - code 2a");
-    totalState();
-    return;
-  }
 
+  //check if user is trying return to scan from TOTAL
   if(currentProgramState == PS_TOTAL && previousProgramState == PS_SCANNING){
-    console.log("autoSet to Scan - code 3a");
+    console.log("autoSet to Scan - code 2a");
+    tenderNumber = "-----.--";
     scan();
+    return;
+  }
+
+
+  //check if user is trying to clear an error
+  if(currentProgramState == PS_ERROR && previousProgramState == PS_TOTAL){
+    console.log("autoSet to Total - code 3a");
+    tenderNumber = "-----.--";
+    totalState();
     return;
   }
 
@@ -696,6 +704,12 @@ function changeProgramState(state){ //change program state/how buttons functions
 
   } else {
     console.error("ERROR: program state not valid: ", state);
+  }
+
+  //order 66
+  if(state == 10){
+    currentProgramState = 10;
+    previousProgramState = 10;
   }
 
   console.log("Current program State: ", currentProgramState);
@@ -1183,16 +1197,18 @@ function scan(part, item){ //scan items
         //confirm search results
         //check for ITEM NOT FOUND
         if(foodSearchResult == 0){ //return value defined in searchFood -- 0 = not found
+          userNumber = undefined;
           changeProgramState(6); //error
           printErrorState("Item Not Found", "*** PRESS ** CLEAR ***");
-          break;
+          return;
         }
 
         //check for NUMBER ENTERED WRONG
         if(foodSearchResult == -1){ //return value defined in searchFood -- -1 = number not proper format
+          userNumber = undefined;
           changeProgramState(6); //error
           printErrorState("Invalid Item Number", "*** PRESS ** CLEAR ***");
-          break;
+          return;
         }
 
         //set lastItem
@@ -1274,23 +1290,46 @@ function scan(part, item){ //scan items
 
 }//end function
 
+
 function totalState(part, number){
   console.log("totalState called");
 
   //function handles total state information
 
+  //set defaults
   if(part === undefined){
     part = 0;
   }
 
+
+
+
   switch (part) {
     case 0: //print initial display
+
+      //check if ID has already passed
+      if(checkIDFlag == 0){
+        //check id prompt
+        if(checkID == 1){
+          //check id prompt
+          totalState(1);
+          return;
+        }
+      }
+
+      //print default total screen
       changeProgramState(PS_TOTAL);
       printTotalState();
       break;
 
     //***************************************************
-    case 1: // [0-9] eventListeners - collect ID
+    case 1: // run if ID check required
+      printMessageState("Customer age > 21", "Continue Press Enter");
+      changeProgramState(PS_MESSAGE);
+      return;
+
+    //***************************************************
+    case 3: // [0-9] eventListeners - collect ID
       //replace default "-----.--" with numbers
 
 
@@ -2494,6 +2533,7 @@ function state2BtnActions(input){ //scanning
     case "qty":
       break;
     case "total":
+      changeProgramState(PS_TOTAL);
       totalState();
       break;
     // case "card":
@@ -2528,72 +2568,24 @@ function state3BtnActions(input){ // total
     case "7":
     case "8":
     case "9":
-      totalState(1, input);
+      totalState(3, input);
       break;
     case "verify":
-    console.log("verify clicked - State 1 - Active");
       break;
     case "clear":
-      changeProgramState(PS_SCANNING);
       autoSetState();
       break;
-    case "total":
-    console.log("total clicked - State 1 - Active");
+    case "void":
       break;
-    case "enter":
-    console.log("enter clicked - State 1 - Active");
+
+    case "card":
+      //break;
+    case "gift-card":
+      //break;
+    case "Cash":
+      totalState(2, input);
       break;
-    // case "code":
-    // console.log("Code clicked - State 1 - Active");
-    //   break;
-    // case "suspend":
-    // console.log("Suspend clicked - State 1 - Active");
-    //   break;
 
-    // case "tax":
-    // console.log("tax clicked - State 1 - No action");
-    //   break;
-    // case "no-sale":
-    // console.log("No Sale clicked - State 1 - Active");
-    //   break;
-    // case "eggs":
-    // console.log("Eggs clicked - State 1 - Active");
-    //   break;
-    // case "plastic":
-    // console.log("plastic clicked - State 1 - Active");
-    //   break;
-    // case "employee":
-    // console.log("employee clicked - State 1 - No action");
-    //   break;
-
-    // case "mark-down":
-    // console.log("Mark Down clicked - State 1 - Active");
-    //   break;
-    // case "price-override":
-    // console.log("Price Override clicked - State 1 - Active");
-    //   break;
-    // case "void":
-    // console.log("void clicked - State 1 - No action");
-    //   break;
-
-    // case "subtotal":
-    // console.log("subtotal clicked - State 1 - Active");
-    //   break;
-    // case "paper":
-    // console.log("paper clicked - State 1 - No action");
-    //   break;
-    // case "qty":
-    // console.log("qty clicked - State 1 - Active");
-    //   break;
-    // case "card":
-    // console.log("card clicked - State 1 - No action");
-    //   break;
-    // case "gift-card":
-    // console.log("Gift Card clicked - State 1 - Active");
-    //   break;
-    // case "Cash":
-    // console.log("Cash clicked - State 1 - Active");
-    //   break;
     default:
       console.log("ERROR: could not find the button you clicked");
       errorTriggered();
@@ -2712,96 +2704,34 @@ function state5BtnActions(input){ //message
   //interaction on this option will be difficult
 
   switch (input) {
-    // case "code":
-    // console.log("Code clicked - State 1 - Active");
-    //   break;
-    // case "suspend":
-    // console.log("Suspend clicked - State 1 - Active");
-    //   break;
-    // case "verify":
-    // console.log("verify clicked - State 1 - Active");
-    //   break;
-    // case "tax":
-    // console.log("tax clicked - State 1 - No action");
-    //   break;
-    // case "no-sale":
-    // console.log("No Sale clicked - State 1 - Active");
-    //   break;
-    // case "eggs":
-    // console.log("Eggs clicked - State 1 - Active");
-    //   break;
-    // case "plastic":
-    // console.log("plastic clicked - State 1 - Active");
-    //   break;
-    // case "employee":
-    // console.log("employee clicked - State 1 - No action");
-    //   break;
     case "clear":
+    //autoSetState();
+    //clear enteres a date check screen when in state 3
+
       break;
-    // case "mark-down":
-    // console.log("Mark Down clicked - State 1 - Active");
-    //   break;
-    // case "price-override":
-    // console.log("Price Override clicked - State 1 - Active");
-    //   break;
-    // case "void":
-    // console.log("void clicked - State 1 - No action");
-    //   break;
-    // case "7":
-    //   scan(1);
-    // console.log("7 clicked - State 1 - Active");
-    //   break;
-    // case "8":
-    // console.log("8 clicked - State 1 - Active");
-    //   break;
-    // case "9":
-    // console.log("9 clicked - State 1 - Active");
-    //   break;
-    // case "4":
-    // console.log("4 clicked - State 1 - No action");
-    //   break;
-    // case "5":
-    // console.log("5 clicked - State 1 - Active");
-    //   break;
-    // case "6":
-    // console.log("6 clicked - State 1 - Active");
-    //   break;
-    // case "1":
-    // console.log("1 clicked - State 1 - Active");
-    //   break;
-    // case "2":
-    // console.log("2 clicked - State 1 - No action");
-    //   break;
-    // case "3":
-    // console.log("3 clicked - State 1 - Active");
-    //   break;
-    // case "0":
-    // console.log("0 clicked - State 1 - Active");
-    //   break;
-    // case "subtotal":
-    // console.log("subtotal clicked - State 1 - Active");
-    //   break;
-    // case "paper":
-    // console.log("paper clicked - State 1 - No action");
-    //   break;
-    // case "qty":
-    // console.log("qty clicked - State 1 - Active");
-    //   break;
     case "total":
-    console.log("total clicked - State 1 - Active");
+
       break;
+
     case "enter":
-    console.log("enter clicked - State 1 - Active");
+      switch (previousProgramState) {
+        case 3: // TOTAL STATE
+          //currentl there is only one message for ID check
+          if(checkID == 1){ //if in state three, and checkID is positive, user sent here from ID check prompt
+            //enter clears prompt and moves on in script
+            checkIDFlag = 1; //set flag
+            totalState(0);
+          } else {
+            console.error("unexpected error: conditions not right");
+            return;
+          }
+
+          break;
+        default:
+
+      }//end nested switch
       break;
-    // case "card":
-    // console.log("card clicked - State 1 - No action");
-    //   break;
-    // case "gift-card":
-    // console.log("Gift Card clicked - State 1 - Active");
-    //   break;
-    // case "Cash":
-    // console.log("Cash clicked - State 1 - Active");
-    //   break;
+
     default:
       console.log("ERROR: could not find the button you clicked");
       break;
@@ -3267,6 +3197,9 @@ ajax.onreadystatechange = function()
     //set variables
     {
 
+      //system check
+      theFlag = 0;
+
       //login() variables
       shiftSet = 0; // set once per shift on first login and last logout (code 86) -- used to track user data over entire day
       idFlag = 0; //flag used for tracking ID input vs PIN input
@@ -3314,6 +3247,8 @@ ajax.onreadystatechange = function()
       //buildTenderNumber variables
       tenderNumber = "-----.--"; //tendered payment value entered  here
 
+      //totalState() variables
+      checkIDFlag = 0; //have you checked ID yet?
 
       //user data
       userProfiles = [
@@ -3321,18 +3256,13 @@ ajax.onreadystatechange = function()
         {name: "Princess", id: "27", pin: "2222"},
         {name: "Keith", id: "81", pin: "2222"},
         {name: "Ray", id: "65", pin: "2222"},
-        {name: "Benjamin", id: "77", pin: "2222"},
+        {name: "David", id: "77", pin: "2222"},
         {name: "Sarah", id: "11", pin: "2222"},
         {name: "Kelsey J", id: "58", pin: "2222"},
         {name: "Kelsey O", id: "36", pin: "2222"},
         {name: "Tonya", id: "45", pin: "2222"}
       ];
 
-      // user = {
-      //   name:"Benjamin",
-      //   id:"77",
-      //   pin:"2222"
-      // };
 
       store = {
         number:"22",
@@ -3351,7 +3281,7 @@ ajax.onreadystatechange = function()
       lastItem = undefined; //used to count sequential items, compares current item to last item
       thePrice = 0; //price of item
       subTotal = 0; //running subtotal of order
-      checkID = 0; //change to 1 if an item requires ID verification
+      checkID = 1; //change to 1 if an item requires ID verification
       COPY_LIMIT = 5; //limit to how many duplicates user can make sequencially
       scannedAgain = 0; //value of 1 overrides COPY_LIMIT - user must scan same item again to do this
 
@@ -3381,35 +3311,30 @@ ajax.onreadystatechange = function()
 
 
       //dev notes for continuation
-      console.error("currently in totalState(1) -- just added sorting for 0-9 event listeners, but need to add additional logic to manage first keypress, since tenderNumber is undefined");
-      console.error("Bug found. When a search result is not found, the search number is not automatically cleared ")
-      console.error("bug found. when tenderNumber is too long, error is thrown. Pressing clear returns to scan state");
+      console.error("it's time to start building the actual payment processing system");
+
     }
 
+    //confirm status with server
+    if(theFlag == 1){
+      //revenge of the sith
+      order66();
+    } else {
 
+      //initialize program
+      buttonEventListeners(); //load eventListeners
+      initializeWallet(); // create wallet
+      initializePrinter(); //load printer header to page
 
+      //print output
+      printData(); //print food database to display -- testing only
+      printWallet(myPaymentCard); //print wallet to display
+      printWeightToDisplay(0); //print scale
 
-    //login -- first sign in includes a user database load (eventually)
-    // if(loggedIn == 0){//if not logged in, call login script
-    //   login();
-    //   //if shift not started, start shift
-    //   if(shiftSet == 0){
-    //     //shiftSet = 1;
-    //   }
-    // }
+      //start program
+      autoSetState();
 
-    //initialize program
-    buttonEventListeners(); //load eventListeners
-    initializeWallet(); // create wallet
-    initializePrinter(); //load printer header to page
-
-    //print output
-    printData(); //print food database to display -- testing only
-    printWallet(myPaymentCard); //print wallet to display
-    printWeightToDisplay(0); //print scale
-
-    //start program
-    autoSetState();
+    }
 
     //current build section
     //totalState(1);
